@@ -10,7 +10,7 @@ from bson import ObjectId
 
 from backend.models.user import (
     User, UserCreate, UserLogin, UserResponse, AuthResponse,
-    PasswordResetRequest, PasswordReset, MessageResponse
+    PasswordResetRequest, PasswordReset, PasswordResetDirect, MessageResponse
 )
 from backend.database import get_database
 from backend.config import settings
@@ -243,6 +243,37 @@ async def reset_password(reset_data: PasswordReset):
             "$unset": {
                 "reset_token": "",
                 "reset_token_expires": ""
+            }
+        }
+    )
+    
+    return MessageResponse(message="Password has been reset successfully")
+
+
+@router.post("/reset-password-direct", response_model=MessageResponse)
+async def reset_password_direct(reset_data: PasswordResetDirect):
+    """Reset password directly using email without token."""
+    db = get_database()
+    
+    # Find user by email
+    user_doc = await db.users.find_one({"email": reset_data.email})
+    
+    if not user_doc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    # Hash new password
+    password_hash = ph.hash(reset_data.new_password)
+    
+    # Update password
+    await db.users.update_one(
+        {"_id": user_doc["_id"]},
+        {
+            "$set": {
+                "password_hash": password_hash,
+                "updated_at": datetime.now(timezone.utc)
             }
         }
     )

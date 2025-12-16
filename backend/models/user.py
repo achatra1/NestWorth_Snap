@@ -83,6 +83,12 @@ class PasswordReset(BaseModel):
     new_password: str = Field(min_length=8)
 
 
+class PasswordResetDirect(BaseModel):
+    """Schema for direct password reset without token."""
+    email: EmailStr
+    new_password: str = Field(min_length=8)
+
+
 class MessageResponse(BaseModel):
     """Schema for simple message response."""
     message: str

@@ -1,32 +1,23 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Baby } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 export default function ResetPassword() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const token = searchParams.get('token');
   
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    console.log('ResetPassword component mounted');
-    console.log('Token from URL:', token);
-    if (!token) {
-      setError('Invalid or missing reset token');
-    }
-  }, [token]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,22 +33,17 @@ export default function ResetPassword() {
       return;
     }
 
-    if (!token) {
-      setError('Invalid reset token');
-      return;
-    }
-
     setLoading(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/auth/reset-password`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/auth/reset-password-direct`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
-          token,
-          new_password: password 
+        body: JSON.stringify({
+          email,
+          new_password: password
         }),
       });
 
@@ -90,9 +76,9 @@ export default function ResetPassword() {
               />
             </Link>
           </div>
-          <CardTitle className="text-2xl font-bold">Set New Password</CardTitle>
+          <CardTitle className="text-2xl font-bold">Reset Password</CardTitle>
           <CardDescription>
-            Enter your new password below
+            Enter your email and new password below
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -112,6 +98,19 @@ export default function ResetPassword() {
             )}
             
             <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                disabled={success}
+              />
+            </div>
+            
+            <div className="space-y-2">
               <Label htmlFor="password">New Password</Label>
               <Input
                 id="password"
@@ -120,7 +119,7 @@ export default function ResetPassword() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                disabled={success || !token}
+                disabled={success}
                 minLength={8}
               />
               <p className="text-xs text-gray-500">Must be at least 8 characters</p>
@@ -135,23 +134,26 @@ export default function ResetPassword() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
-                disabled={success || !token}
+                disabled={success}
                 minLength={8}
               />
             </div>
             
             <Button 
-              type="submit" 
-              className="w-full" 
-              disabled={loading || success || !token}
+              type="submit"
+              className="w-full"
+              disabled={loading || success}
             >
               {loading ? 'Resetting...' : 'Reset Password'}
             </Button>
             
-            <div className="text-center text-sm text-gray-600">
-              Remember your password?{' '}
-              <Link to="/" className="text-blue-600 hover:underline font-medium">
-                Sign in
+            <div className="text-center">
+              <Link
+                to="/"
+                className="text-sm text-blue-600 hover:underline font-medium inline-flex items-center gap-1"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Back to Login
               </Link>
             </div>
           </form>

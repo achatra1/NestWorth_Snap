@@ -88,6 +88,11 @@ def generate_pdf(projection: dict[str, Any], summary: str) -> BytesIO:
     # Container for PDF elements
     elements = []
     
+    # Extract profile and projections early for use throughout
+    profile = projection.get('profile', {})
+    yearly_projections = projection.get('yearlyProjections', [])
+    monthly_projections = projection.get('monthlyProjections', [])
+    
     # Get styles
     styles = getSampleStyleSheet()
     
@@ -147,8 +152,6 @@ def generate_pdf(projection: dict[str, Any], summary: str) -> BytesIO:
     elements.append(Paragraph("Year-by-Year Financial Breakdown", section_style))
     elements.append(Spacer(1, 0.2 * inch))
     
-    yearly_projections = projection.get('yearlyProjections', [])
-    monthly_projections = projection.get('monthlyProjections', [])
     childcare_pref = profile.get('childcarePreference', 'N/A').replace('-', ' ').title()
     
     # Create detailed breakdown for each year
@@ -240,48 +243,45 @@ def generate_pdf(projection: dict[str, Any], summary: str) -> BytesIO:
         breakdown_data.append(['', ''])
         breakdown_data.append(['ENDING SAVINGS', format_currency(ending_savings)])
         
-        # Create table
-        breakdown_table = Table(breakdown_data, colWidths=[4.5 * inch, 2 * inch])
-        breakdown_table.setStyle(TableStyle([
+        # Create table with safe, minimal styling
+        table_style = [
             ('ALIGN', (0, 0), (0, -1), 'LEFT'),
             ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
             ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
             ('FONTSIZE', (0, 0), (-1, -1), 9),
             ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
             ('TOPPADDING', (0, 0), (-1, -1), 4),
-            
-            # Bold section headers
-            ('FONTNAME', (0, 0), (0, 0), 'Helvetica-Bold'),  # INCOME BREAKDOWN
-            ('FONTNAME', (0, 3), (0, 3), 'Helvetica-Bold'),  # Total Income
-            ('FONTNAME', (0, 5), (0, 5), 'Helvetica-Bold'),  # HOUSEHOLD EXPENSES
-            ('FONTNAME', (0, 11), (0, 11), 'Helvetica-Bold'),  # CHILDCARE EXPENSES
-            
-            # Bold totals
-            ('FONTNAME', (0, -8), (-1, -8), 'Helvetica-Bold'),  # TOTAL EXPENSES
-            ('FONTNAME', (0, -5), (-1, -5), 'Helvetica-Bold'),  # NET CASHFLOW
-            ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),  # ENDING SAVINGS
-            
-            # Background for main sections
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#e5e7eb')),
-            ('BACKGROUND', (0, 3), (-1, 3), colors.HexColor('#f3f4f6')),
-            ('BACKGROUND', (0, 5), (-1, 5), colors.HexColor('#e5e7eb')),
-            ('BACKGROUND', (0, 11), (-1, 11), colors.HexColor('#e5e7eb')),
-            ('BACKGROUND', (0, -8), (-1, -8), colors.HexColor('#dbeafe')),
-            ('BACKGROUND', (0, -5), (-1, -5), colors.HexColor('#dcfce7')),
-            ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor('#e0e7ff')),
-            
-            # Indentation for sub-items (smaller font)
-            ('FONTSIZE', (0, 2), (0, 2), 8),  # Monthly calculations
-            ('FONTSIZE', (0, 7), (0, 9), 8),  # Household monthly calcs
-            ('TEXTCOLOR', (0, 2), (0, 2), colors.grey),
-            ('TEXTCOLOR', (0, 7), (0, 9), colors.grey),
-            
-            # Grid lines
-            ('LINEABOVE', (0, 3), (-1, 3), 1, colors.grey),
-            ('LINEABOVE', (0, -8), (-1, -8), 1.5, colors.grey),
-            ('LINEABOVE', (0, -5), (-1, -5), 1, colors.grey),
-            ('LINEABOVE', (0, -1), (-1, -1), 1, colors.grey),
-        ]))
+        ]
+        
+        # Find and style section headers dynamically
+        for i, row in enumerate(breakdown_data):
+            row_text = row[0].strip()
+            # Bold formatting for headers and totals
+            if row_text in ['INCOME BREAKDOWN', 'Total Income', 'HOUSEHOLD EXPENSES',
+                           'Household Subtotal', 'CHILDCARE EXPENSES', 'Childcare Subtotal',
+                           'TOTAL EXPENSES', 'NET CASHFLOW', 'ENDING SAVINGS']:
+                table_style.append(('FONTNAME', (0, i), (-1, i), 'Helvetica-Bold'))
+                
+            # Background colors for major sections
+            if row_text == 'INCOME BREAKDOWN':
+                table_style.append(('BACKGROUND', (0, i), (-1, i), colors.HexColor('#e5e7eb')))
+            elif row_text == 'Total Income':
+                table_style.append(('BACKGROUND', (0, i), (-1, i), colors.HexColor('#f3f4f6')))
+                table_style.append(('LINEABOVE', (0, i), (-1, i), 1, colors.grey))
+            elif row_text in ['HOUSEHOLD EXPENSES', 'CHILDCARE EXPENSES']:
+                table_style.append(('BACKGROUND', (0, i), (-1, i), colors.HexColor('#e5e7eb')))
+            elif row_text == 'TOTAL EXPENSES':
+                table_style.append(('BACKGROUND', (0, i), (-1, i), colors.HexColor('#dbeafe')))
+                table_style.append(('LINEABOVE', (0, i), (-1, i), 1.5, colors.grey))
+            elif row_text == 'NET CASHFLOW':
+                table_style.append(('BACKGROUND', (0, i), (-1, i), colors.HexColor('#dcfce7')))
+                table_style.append(('LINEABOVE', (0, i), (-1, i), 1, colors.grey))
+            elif row_text == 'ENDING SAVINGS':
+                table_style.append(('BACKGROUND', (0, i), (-1, i), colors.HexColor('#e0e7ff')))
+                table_style.append(('LINEABOVE', (0, i), (-1, i), 1, colors.grey))
+        
+        breakdown_table = Table(breakdown_data, colWidths=[4.5 * inch, 2 * inch])
+        breakdown_table.setStyle(TableStyle(table_style))
         
         elements.append(breakdown_table)
         elements.append(Spacer(1, 0.3 * inch))
@@ -300,12 +300,13 @@ def generate_pdf(projection: dict[str, Any], summary: str) -> BytesIO:
     elements.append(Spacer(1, 0.2 * inch))
     
     assumptions = projection.get('assumptions', {})
-    profile = projection.get('profile', {})
     
     # Build comprehensive assumptions list
     assumptions_data = []
+    header_rows = []  # Track which rows are section headers
     
     # Income assumptions
+    header_rows.append(len(assumptions_data))
     assumptions_data.append(['Income', ''])
     assumptions_data.append(['  Partner 1 Monthly Income', format_currency(profile.get('partner1Income', 0))])
     assumptions_data.append(['  Partner 2 Monthly Income', format_currency(profile.get('partner2Income', 0))])
@@ -315,6 +316,7 @@ def generate_pdf(projection: dict[str, Any], summary: str) -> BytesIO:
     # One-time costs
     one_time = assumptions.get('oneTimeCosts', {})
     if one_time:
+        header_rows.append(len(assumptions_data))
         assumptions_data.append(['One-Time Costs', ''])
         for key, value in one_time.items():
             label = key.replace('_', ' ').title()
@@ -324,6 +326,7 @@ def generate_pdf(projection: dict[str, Any], summary: str) -> BytesIO:
     # Recurring costs
     recurring = assumptions.get('recurringCosts', {})
     if recurring:
+        header_rows.append(len(assumptions_data))
         assumptions_data.append(['Monthly Recurring Costs', ''])
         for key, value in recurring.items():
             label = key.replace('_', ' ').title()
@@ -333,6 +336,7 @@ def generate_pdf(projection: dict[str, Any], summary: str) -> BytesIO:
     # Childcare costs
     childcare = assumptions.get('childcareCosts', {})
     if childcare:
+        header_rows.append(len(assumptions_data))
         assumptions_data.append(['Childcare', ''])
         assumptions_data.append([f"  Preference", profile.get('childcarePreference', 'N/A').replace('-', ' ').title()])
         assumptions_data.append([f"  Monthly Cost", format_currency(childcare.get('monthlyCost', 0))])
@@ -340,27 +344,29 @@ def generate_pdf(projection: dict[str, Any], summary: str) -> BytesIO:
         assumptions_data.append(['', ''])
     
     # Other profile details
+    header_rows.append(len(assumptions_data))
     assumptions_data.append(['Other Details', ''])
     assumptions_data.append([f"  ZIP Code", profile.get('zipCode', 'N/A')])
     assumptions_data.append([f"  Due Date", profile.get('dueDate', 'N/A')])
     
     if assumptions_data:
-        assumptions_table = Table(assumptions_data, colWidths=[4.5 * inch, 2 * inch])
-        assumptions_table.setStyle(TableStyle([
+        # Build table style dynamically
+        table_style = [
             ('ALIGN', (0, 0), (0, -1), 'LEFT'),
             ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
             ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
             ('FONTSIZE', (0, 0), (-1, -1), 9),
             ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
             ('TOPPADDING', (0, 0), (-1, -1), 6),
-            # Bold category headers
-            ('FONTNAME', (0, 0), (0, 0), 'Helvetica-Bold'),
-            ('FONTNAME', (0, 4), (0, 4), 'Helvetica-Bold'),
-            ('FONTNAME', (0, 5), (0, 5), 'Helvetica-Bold'),
-            ('FONTNAME', (0, 10), (0, 10), 'Helvetica-Bold'),
-            ('FONTNAME', (0, 14), (0, 14), 'Helvetica-Bold'),
-            ('FONTNAME', (0, 19), (0, 19), 'Helvetica-Bold'),
-        ]))
+        ]
+        
+        # Add bold formatting for section headers dynamically
+        for row_idx in header_rows:
+            if row_idx < len(assumptions_data):
+                table_style.append(('FONTNAME', (0, row_idx), (0, row_idx), 'Helvetica-Bold'))
+        
+        assumptions_table = Table(assumptions_data, colWidths=[4.5 * inch, 2 * inch])
+        assumptions_table.setStyle(TableStyle(table_style))
         
         elements.append(assumptions_table)
     

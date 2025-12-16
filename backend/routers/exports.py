@@ -81,6 +81,10 @@ async def export_pdf(
     except HTTPException:
         raise
     except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"PDF Generation Error: {str(e)}")
+        print(f"Full traceback:\n{error_details}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to generate PDF: {str(e)}"

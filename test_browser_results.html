@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Results Page</title>
+</head>
+<body>
+    <h1>Testing Results Page</h1>
+    <button onclick="testFlow()">Test Complete Flow</button>
+    <pre id="output"></pre>
+
+    <script>
+        const BASE_URL = 'http://localhost:8000';
+        const output = document.getElementById('output');
+
+        async function testFlow() {
+            output.textContent = 'Starting test...\n';
+
+            try {
+                // Step 1: Login or Signup
+                output.textContent += '\nStep 1: Creating/logging in user...\n';
+                const signupResponse = await fetch(`${BASE_URL}/api/v1/auth/signup`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: 'browser_test@example.com',
+                        password: 'TestPassword123!',
+                        name: 'Browser Test User'
+                    })
+                });
+
+                let token;
+                if (signupResponse.status === 201) {
+                    const signupData = await signupResponse.json();
+                    token = signupData.token;
+                    output.textContent += `✓ User created\n`;
+                } else if (signupResponse.status === 400) {
+                    // Try login
+                    const loginResponse = await fetch(`${BASE_URL}/api/v1/auth/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            email: 'browser_test@example.com',
+                            password: 'TestPassword123!'
+                        })
+                    });
+                    const loginData = await loginResponse.json();
+                    token = loginData.token;
+                    output.textContent += `✓ User logged in\n`;
+                }
+
+                // Store token
+                localStorage.setItem('token', token);
+                output.textContent += `Token stored: ${token.substring(0, 20)}...\n`;
+
+                // Step 2: Create profile
+                output.textContent += '\nStep 2: Creating profile...\n';
+                const profileResponse = await fetch(`${BASE_URL}/api/v1/profiles`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        partner1Income: 5000,
+                        partner2Income: 4500,
+                        zipCode: '10001',
+                        dueDate: '2025-06-15',
+                        currentSavings: 25000,
+                        childcarePreference: 'daycare',
+                        partner1Leave: { durationWeeks: 12, percentPaid: 100 },
+                        partner2Leave: { durationWeeks: 8, percentPaid: 50 },
+                        monthlyHousingCost: 2000
+                    })
+                });
+
+                if (profileResponse.ok) {
+                    output.textContent += `✓ Profile created (${profileResponse.status})\n`;
+                } else {
+                    output.textContent += `✗ Profile failed: ${await profileResponse.text()}\n`;
+                    return;
+                }
+
+                // Step 3: Calculate projection
+                output.textContent += '\nStep 3: Calculating projection...\n';
+                const projectionResponse = await fetch(`${BASE_URL}/api/v1/projections/calculate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({})
+                });
+
+                output.textContent += `Projection status: ${projectionResponse.status}\n`;
+                
+                if (projectionResponse.ok) {
+                    const projection = await projectionResponse.json();
+                    output.textContent += `✓ Projection calculated!\n`;
+                    output.textContent += `  Total cost: $${projection.totalCost.toLocaleString()}\n`;
+                    output.textContent += `  Years: ${projection.yearlyProjections.length}\n`;
+                    output.textContent += '\n✓ All tests passed! Now navigate to http://localhost:5137/results\n';
+                } else {
+                    const error = await projectionResponse.text();
+                    output.textContent += `✗ Projection failed: ${error}\n`;
+                }
+
+            } catch (error) {
+                output.textContent += `\n✗ Error: ${error.message}\n`;
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+</html>

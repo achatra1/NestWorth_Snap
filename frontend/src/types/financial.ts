@@ -5,6 +5,7 @@ export interface UserFinancialProfile {
   zipCode: string;
   dueDate: string; // ISO date string
   currentSavings: number;
+  numberOfChildren: number;
   childcarePreference: 'daycare' | 'nanny' | 'stay-at-home';
   partner1Leave: {
     durationWeeks: number;
@@ -15,6 +16,7 @@ export interface UserFinancialProfile {
     percentPaid: number; // 0-100
   };
   monthlyHousingCost: number;
+  monthlyCreditCardExpenses: number;
 }
 
 export interface ExpenseAssumptions {
@@ -32,8 +34,6 @@ export interface ExpenseAssumptions {
     wipes: number;
     formula: number; // Assuming formula feeding
     babyFood: number; // Starts around month 6
-    clothing: number;
-    healthcare: number; // Co-pays, medications
     miscellaneous: number;
   };
   childcareCosts: {
@@ -58,10 +58,9 @@ export interface MonthlyProjection {
     childcare: number;
     diapers: number;
     food: number;
-    healthcare: number;
-    clothing: number;
     oneTime: number;
     miscellaneous: number;
+    creditCard: number;
     total: number;
   };
   netCashflow: number;
@@ -79,10 +78,9 @@ export interface YearlyProjection {
     childcare: number;
     diapers: number;
     food: number;
-    healthcare: number;
-    clothing: number;
     oneTime: number;
     miscellaneous: number;
+    creditCard: number;
   };
 }
 

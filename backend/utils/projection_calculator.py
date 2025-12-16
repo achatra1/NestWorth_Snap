@@ -24,10 +24,9 @@ class ExpenseBreakdown(TypedDict):
     childcare: float
     diapers: float
     food: float
-    healthcare: float
-    clothing: float
     one_time: float
     miscellaneous: float
+    credit_card: float
     total: float
 
 
@@ -46,10 +45,9 @@ class YearlyExpenseBreakdown(TypedDict):
     childcare: float
     diapers: float
     food: float
-    healthcare: float
-    clothing: float
     one_time: float
     miscellaneous: float
+    credit_card: float
 
 
 class YearlyProjection(TypedDict):
@@ -106,10 +104,9 @@ def calculate_monthly_expenses(
         'childcare': 0,
         'diapers': 0,
         'food': 0,
-        'healthcare': 0,
-        'clothing': 0,
         'one_time': 0,
         'miscellaneous': 0,
+        'credit_card': profile.get('monthly_credit_card_expenses', 0),
         'total': 0,
     }
     
@@ -124,12 +121,11 @@ def calculate_monthly_expenses(
     recurring_costs = get_recurring_costs_by_year(year)
     
     # Map recurring costs to expense structure
-    # All recurring costs are shown under childcare expenses category
     expenses['diapers'] = recurring_costs.get('Diaper', 0)
     expenses['food'] = recurring_costs.get('Food', 0)
-    expenses['clothing'] = recurring_costs.get('Supplies', 0)  # Supplies mapped to clothing
-    expenses['healthcare'] = recurring_costs.get('Wipes', 0)  # Wipes mapped to healthcare
     expenses['miscellaneous'] = (
+        recurring_costs.get('Supplies', 0) +
+        recurring_costs.get('Wipes', 0) +
         recurring_costs.get('Toys', 0) +
         recurring_costs.get('Miscellaneous ( Activities, Baby sitter etc)', 0)
     )
@@ -137,10 +133,24 @@ def calculate_monthly_expenses(
     # Childcare (starts at specified month)
     if baby_age_months >= assumptions['childcare_start_month']:
         base_childcare_cost = 0
+        number_of_children = profile.get('number_of_children', 1)
+        
         if profile['childcare_preference'] == 'daycare':
-            base_childcare_cost = assumptions['childcare_costs']['daycare']
+            single_child_cost = assumptions['childcare_costs']['daycare']
+            # For multiple children: multiply by number of children, then subtract 20% discount per child
+            if number_of_children > 1:
+                total_cost = single_child_cost * number_of_children
+                discount = single_child_cost * 0.20 * (number_of_children - 1)
+                base_childcare_cost = total_cost - discount
+            else:
+                base_childcare_cost = single_child_cost
         elif profile['childcare_preference'] == 'nanny':
-            base_childcare_cost = assumptions['childcare_costs']['nanny']
+            single_nanny_cost = assumptions['childcare_costs']['nanny']
+            # For multiple children: increase by 60% per additional child
+            if number_of_children > 1:
+                base_childcare_cost = single_nanny_cost * (1 + 0.60 * (number_of_children - 1))
+            else:
+                base_childcare_cost = single_nanny_cost
         
         # Apply 20% reduction after year 3 (36 months)
         if baby_age_months >= 36:
@@ -154,10 +164,9 @@ def calculate_monthly_expenses(
         expenses['childcare'] +
         expenses['diapers'] +
         expenses['food'] +
-        expenses['healthcare'] +
-        expenses['clothing'] +
         expenses['one_time'] +
-        expenses['miscellaneous']
+        expenses['miscellaneous'] +
+        expenses['credit_card']
     )
     
     return expenses
@@ -182,10 +191,9 @@ def aggregate_yearly_projections(
             'childcare': sum(m['expenses']['childcare'] for m in year_months),
             'diapers': sum(m['expenses']['diapers'] for m in year_months),
             'food': sum(m['expenses']['food'] for m in year_months),
-            'healthcare': sum(m['expenses']['healthcare'] for m in year_months),
-            'clothing': sum(m['expenses']['clothing'] for m in year_months),
             'one_time': sum(m['expenses']['one_time'] for m in year_months),
             'miscellaneous': sum(m['expenses']['miscellaneous'] for m in year_months),
+            'credit_card': sum(m['expenses']['credit_card'] for m in year_months),
         }
         
         yearly_data.append({

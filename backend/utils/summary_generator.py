@@ -28,13 +28,11 @@ def build_summary_prompt(projection: dict[str, Any]) -> str:
     total_childcare = sum(y["expenseBreakdown"]["childcare"] for y in yearly)
     total_diapers = sum(y["expenseBreakdown"]["diapers"] for y in yearly)
     total_food = sum(y["expenseBreakdown"]["food"] for y in yearly)
-    total_healthcare = sum(y["expenseBreakdown"]["healthcare"] for y in yearly)
-    total_clothing = sum(y["expenseBreakdown"]["clothing"] for y in yearly)
     one_time_costs = sum(y["expenseBreakdown"]["oneTime"] for y in yearly)
     total_misc = sum(y["expenseBreakdown"]["miscellaneous"] for y in yearly)
     
     # Calculate baby-specific costs (excluding housing)
-    total_baby_costs = total_childcare + total_diapers + total_food + total_healthcare + total_clothing + one_time_costs + total_misc
+    total_baby_costs = total_childcare + total_diapers + total_food + one_time_costs + total_misc
     
     # Calculate parental leave income loss
     partner1_leave_weeks = profile["partner1Leave"]["durationWeeks"]
@@ -42,11 +40,20 @@ def build_summary_prompt(projection: dict[str, Any]) -> str:
     partner2_leave_weeks = profile["partner2Leave"]["durationWeeks"]
     partner2_leave_percent = profile["partner2Leave"]["percentPaid"]
     
-    partner1_income_loss = (profile["partner1Income"] * 52 / 12) * partner1_leave_weeks * (1 - partner1_leave_percent / 100)
-    partner2_income_loss = (profile["partner2Income"] * 52 / 12) * partner2_leave_weeks * (1 - partner2_leave_percent / 100)
+    partner1_income_loss = (profile["partner1Income"] / 12 * 52) * partner1_leave_weeks * (1 - partner1_leave_percent / 100)
+    partner2_income_loss = (profile["partner2Income"] / 12 * 52) * partner2_leave_weeks * (1 - partner2_leave_percent / 100)
     total_leave_income_loss = partner1_income_loss + partner2_income_loss
     
-    household_annual_income = (profile["partner1Income"] + profile["partner2Income"]) * 12
+    # Calculate household annual income, accounting for stay-at-home parent
+    # If stay-at-home, the lower earner's income becomes zero after parental leave
+    is_stay_at_home = profile["childcarePreference"] == "stay-at-home"
+    if is_stay_at_home:
+        # The lower earner stays home, so their income is zero for the total family income calculation
+        lower_income = min(profile["partner1Income"], profile["partner2Income"])
+        higher_income = max(profile["partner1Income"], profile["partner2Income"])
+        household_annual_income = higher_income * 12
+    else:
+        household_annual_income = (profile["partner1Income"] + profile["partner2Income"]) * 12
     baby_cost_percent = (total_baby_costs / total_income) * 100
     ending_savings = yearly[4]["endingSavings"]
     
@@ -65,8 +72,7 @@ def build_summary_prompt(projection: dict[str, Any]) -> str:
 - Total Childcare (5 years): ${total_childcare:,.0f}
 - Total Diapers (5 years): ${total_diapers:,.0f}
 - Total Food (5 years): ${total_food:,.0f}
-- Total Healthcare (5 years): ${total_healthcare:,.0f}
-- Total Clothing (5 years): ${total_clothing:,.0f}
+- Total Miscellaneous (5 years): ${total_misc:,.0f}
 - Average Annual Baby Cost: ${total_baby_costs / 5:,.0f}
 - Average Monthly Baby Cost: ${total_baby_costs / 60:,.0f}
 - Starting Savings: ${profile["currentSavings"]:,.0f}
@@ -88,8 +94,6 @@ def build_summary_prompt(projection: dict[str, Any]) -> str:
   - Childcare: ${year["expenseBreakdown"]["childcare"]:,.0f}
   - Diapers: ${year["expenseBreakdown"]["diapers"]:,.0f}
   - Food: ${year["expenseBreakdown"]["food"]:,.0f}
-  - Healthcare: ${year["expenseBreakdown"]["healthcare"]:,.0f}
-  - Clothing: ${year["expenseBreakdown"]["clothing"]:,.0f}
   - One-Time: ${year["expenseBreakdown"]["oneTime"]:,.0f}
   - Miscellaneous: ${year["expenseBreakdown"]["miscellaneous"]:,.0f}
 """
@@ -103,6 +107,13 @@ def build_summary_prompt(projection: dict[str, Any]) -> str:
 - Partner 1 Leave: {profile["partner1Leave"]["durationWeeks"]} weeks at {profile["partner1Leave"]["percentPaid"]}% pay
 - Partner 2 Leave: {profile["partner2Leave"]["durationWeeks"]} weeks at {profile["partner2Leave"]["percentPaid"]}% pay
 - Monthly Housing Cost: ${profile["monthlyHousingCost"]:,.0f}
+
+**IMPORTANT NOTE ON STAY-AT-HOME PARENT:**
+If the childcare preference is "stay-at-home", the lower-earning partner stays home after their parental leave ends. This means:
+- Their income becomes $0 after parental leave
+- The Household Annual Income shown above reflects ONLY the working partner's income (not both partners)
+- Total Family Income in your summary should reflect this single-income reality
+- Childcare costs are $0, but the family operates on one income
 
 ### Warnings:
 """
@@ -119,20 +130,36 @@ def build_summary_prompt(projection: dict[str, Any]) -> str:
 
 ## Your Task:
 
-Create a comprehensive, empathetic markdown summary with these sections:
+Create a concise, empowering markdown summary with these sections ONLY:
 
-1. **Executive Summary** - Brief overview with key totals
-2. **Life Stage Breakdown** - Year 0-1 (Infant), Year 1-3 (Toddler), Year 3-5 (Preschool)
-3. **Childcare Analysis** - Detailed look at childcare costs and impact
-4. **Cost Structure** - One-time vs recurring breakdown
-5. **Financial Pressure Points** - Identify challenging periods
-6. **Planning Insights** - 3-5 actionable recommendations
+1. **Opening Message** - Congratulatory message with 2-line positive summary of their financial strengths
+2. **Financial Pressure Points** - Identify key challenging periods and opportunities for smart planning
+
+**CRITICAL STRUCTURE REQUIREMENTS:**
+- DO NOT include an "Executive Summary" section
+- DO NOT include "Total Childcare Cost (5 years)" or similar aggregate cost summaries
+- Start immediately with congratulations and positive observations
+- Move directly to Financial Pressure Points after the opening
+- **MANDATORY: End with this exact call-to-action hook:**
+  "Go Premium to unlock tailored planning recommendations, smart ways to save, and insights into financial support options available to your family."
+
+**IMPORTANT: When discussing childcare costs in Financial Pressure Points:**
+- Always reference childcare costs as a COMBINED total that includes:
+  - Daycare/home-based care costs (from the childcare expense breakdown)
+  - Recurring costs (diapers, food, miscellaneous supplies)
+- Present these as unified "childcare and baby care costs" rather than separating them
+- This provides a complete picture of the financial impact of having a baby
+- Note: Healthcare and clothing costs are not included in these projections
 
 **Tone Guidelines:**
+- **MANDATORY: Start with a congratulatory message celebrating this exciting journey**
+- **MANDATORY: In the first 2 lines, provide a positive summary highlighting the strengths and opportunities in their financial plan**
+- Encouraging and positive throughout - emphasize what's going well before discussing challenges
 - Empathetic and supportive (this is a major life transition)
 - Clear and structured (use markdown formatting)
-- Realistic but encouraging
-- Focus on planning and preparation, not fear
+- Realistic but optimistic - frame challenges as opportunities for planning
+- Focus on empowerment and preparation, not fear or anxiety
+- Celebrate their proactive planning and financial awareness
 
 **Format Requirements:**
 - Use markdown headers (##, ###)
@@ -141,7 +168,10 @@ Create a comprehensive, empathetic markdown summary with these sections:
 - Format all currency as $X,XXX (no decimals)
 - Keep paragraphs concise
 
-**REMEMBER**: Use ONLY the numbers provided above. Do not calculate or estimate any new values.
+**CRITICAL REMINDERS:**
+- Use ONLY the numbers provided above. Do not calculate or estimate any new values.
+- For stay-at-home scenarios: The Household Annual Income already reflects the single working parent's income (the stay-at-home parent's income is $0). Do not add both partner incomes together.
+- When discussing total family income, use the Household Annual Income value provided, which correctly accounts for the stay-at-home parent scenario.
 """
     
     return prompt
@@ -170,13 +200,18 @@ async def generate_summary(projection: dict[str, Any], custom_instructions: str 
     messages = [
         {
             "role": "system",
-            "content": """You are a professional, fiduciary-minded financial advisor.
-Your goal is to help me understand my budget clearly, surface risks and tradeoffs, and give practical, conservative financial advice.
+            "content": """You are a professional, fiduciary-minded financial advisor with an encouraging and positive communication style.
 
-Your tone should be calm, neutral, and grounded — not salesy, not alarmist, and not overly optimistic.
-You should assume I want long-term financial stability over short-term optimization.
+CRITICAL TONE REQUIREMENTS:
+- You MUST start every response with a congratulatory message celebrating the user's journey into parenthood
+- You MUST provide a 2-line positive summary in the opening that highlights strengths and opportunities BEFORE discussing any challenges
+- Your tone should be encouraging, positive, and empowering throughout
+- Frame challenges as opportunities for smart planning rather than obstacles
+- Celebrate the user's proactive approach to financial planning
+- Emphasize what's going well and the positive aspects of their financial situation first
+- When discussing risks or challenges, always pair them with constructive solutions and encouragement
 
-You provide clear, structured advice using only the data provided to you."""
+Your goal is to help users understand their budget clearly while maintaining an optimistic and supportive tone. You provide clear, structured advice using only the data provided to you, always starting with positive reinforcement and celebrating their financial awareness."""
         },
         {
             "role": "user",

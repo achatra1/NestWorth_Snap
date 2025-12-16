@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserFinancialProfile } from '@/types/financial';
@@ -9,10 +9,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
 import { Baby, DollarSign, MapPin, Calendar, Briefcase } from 'lucide-react';
+import PremiumHeader from '@/components/PremiumHeader';
 
 export default function Onboarding() {
   const navigate = useNavigate();
-  const { user, saveProfile } = useAuth();
+  const { user, profile, saveProfile } = useAuth();
   const [step, setStep] = useState(1);
   const totalSteps = 3;
 
@@ -22,13 +23,46 @@ export default function Onboarding() {
     zipCode: '',
     dueDate: '',
     currentSavings: '',
+    numberOfChildren: '',
     childcarePreference: 'daycare' as 'daycare' | 'nanny' | 'stay-at-home',
     partner1LeaveDuration: '',
     partner1LeavePercent: '',
     partner2LeaveDuration: '',
     partner2LeavePercent: '',
     monthlyHousingCost: '',
+    monthlyCreditCardExpenses: '',
   });
+
+  // Prepopulate form with existing profile data when component mounts or profile changes
+  useEffect(() => {
+    if (profile) {
+      // Convert date string to YYYY-MM-DD format for input field
+      const formatDateForInput = (dateString: string) => {
+        try {
+          const date = new Date(dateString);
+          return date.toISOString().split('T')[0];
+        } catch {
+          return '';
+        }
+      };
+
+      setFormData({
+        partner1Income: profile.partner1Income?.toString() || '',
+        partner2Income: profile.partner2Income?.toString() || '',
+        zipCode: profile.zipCode || '',
+        dueDate: formatDateForInput(profile.dueDate) || '',
+        currentSavings: profile.currentSavings?.toString() || '',
+        numberOfChildren: profile.numberOfChildren?.toString() || '',
+        childcarePreference: profile.childcarePreference || 'daycare',
+        partner1LeaveDuration: profile.partner1Leave?.durationWeeks?.toString() || '',
+        partner1LeavePercent: profile.partner1Leave?.percentPaid?.toString() || '',
+        partner2LeaveDuration: profile.partner2Leave?.durationWeeks?.toString() || '',
+        partner2LeavePercent: profile.partner2Leave?.percentPaid?.toString() || '',
+        monthlyHousingCost: profile.monthlyHousingCost?.toString() || '',
+        monthlyCreditCardExpenses: profile.monthlyCreditCardExpenses?.toString() || '',
+      });
+    }
+  }, [profile]);
 
   const updateField = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -51,9 +85,10 @@ export default function Onboarding() {
 
     // Validate all fields are filled
     if (!formData.partner1Income || !formData.partner2Income || !formData.zipCode ||
-        !formData.dueDate || !formData.currentSavings || !formData.partner1LeaveDuration ||
-        !formData.partner1LeavePercent || !formData.partner2LeaveDuration ||
-        !formData.partner2LeavePercent || !formData.monthlyHousingCost) {
+        !formData.dueDate || !formData.currentSavings || !formData.numberOfChildren ||
+        !formData.partner1LeaveDuration || !formData.partner1LeavePercent ||
+        !formData.partner2LeaveDuration || !formData.partner2LeavePercent ||
+        !formData.monthlyHousingCost || !formData.monthlyCreditCardExpenses) {
       alert('Please fill in all fields');
       return;
     }
@@ -72,6 +107,7 @@ export default function Onboarding() {
       zipCode: formData.zipCode,
       dueDate: formData.dueDate,
       currentSavings: parseFloat(formData.currentSavings),
+      numberOfChildren: parseInt(formData.numberOfChildren),
       childcarePreference: formData.childcarePreference,
       partner1Leave: {
         durationWeeks: parseInt(formData.partner1LeaveDuration),
@@ -82,6 +118,7 @@ export default function Onboarding() {
         percentPaid: parseInt(formData.partner2LeavePercent),
       },
       monthlyHousingCost: parseFloat(formData.monthlyHousingCost),
+      monthlyCreditCardExpenses: parseFloat(formData.monthlyCreditCardExpenses),
     };
 
     console.log('Submitting profile:', profileData);
@@ -100,6 +137,7 @@ export default function Onboarding() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 py-8">
+      <PremiumHeader />
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
@@ -191,6 +229,24 @@ export default function Onboarding() {
                   </div>
 
                   <div className="space-y-2">
+                    <Label htmlFor="numberOfChildren" className="flex items-center gap-2">
+                      <Baby className="w-4 h-4" />
+                      How many children are you planning for in this blueprint?
+                    </Label>
+                    <Input
+                      id="numberOfChildren"
+                      type="number"
+                      placeholder="1"
+                      value={formData.numberOfChildren}
+                      onChange={(e) => updateField('numberOfChildren', e.target.value)}
+                      required
+                      min="1"
+                      max="10"
+                    />
+                    <p className="text-sm text-gray-500">Enter the number of children you're planning for</p>
+                  </div>
+
+                  <div className="space-y-2">
                     <Label htmlFor="monthlyHousingCost" className="flex items-center gap-2">
                       <DollarSign className="w-4 h-4" />
                       Monthly Housing Cost (Rent/Mortgage)
@@ -205,6 +261,24 @@ export default function Onboarding() {
                       min="0"
                       step="0.01"
                     />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="monthlyCreditCardExpenses" className="flex items-center gap-2">
+                      <DollarSign className="w-4 h-4" />
+                      Average Monthly Credit Card Expenses
+                    </Label>
+                    <Input
+                      id="monthlyCreditCardExpenses"
+                      type="number"
+                      placeholder="500"
+                      value={formData.monthlyCreditCardExpenses}
+                      onChange={(e) => updateField('monthlyCreditCardExpenses', e.target.value)}
+                      required
+                      min="0"
+                      step="0.01"
+                    />
+                    <p className="text-sm text-gray-500">Your typical monthly credit card spending</p>
                   </div>
                 </>
               )}

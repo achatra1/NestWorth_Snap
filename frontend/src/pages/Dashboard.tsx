@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileText, UserCog } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import PremiumHeader from '@/components/PremiumHeader';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -18,11 +19,12 @@ export default function Dashboard() {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate('/');
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <PremiumHeader />
       <div className="w-full max-w-4xl">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">
@@ -79,7 +81,7 @@ export default function Dashboard() {
         </div>
 
         <div className="text-center">
-          <Button 
+          <Button
             onClick={handleLogout}
             variant="outline"
             size="sm"

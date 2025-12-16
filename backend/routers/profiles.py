@@ -65,10 +65,12 @@ async def create_or_update_profile(
         zip_code=profile.zip_code,
         due_date=profile.due_date.isoformat(),
         current_savings=profile.current_savings,
+        number_of_children=profile.number_of_children,
         childcare_preference=profile.childcare_preference,
         partner1_leave=profile.partner1_leave,
         partner2_leave=profile.partner2_leave,
         monthly_housing_cost=profile.monthly_housing_cost,
+        monthly_credit_card_expenses=profile.monthly_credit_card_expenses,
         created_at=profile.created_at.isoformat(),
         updated_at=profile.updated_at.isoformat()
     )
@@ -99,10 +101,12 @@ async def get_my_profile(current_user: User = Depends(get_current_user)):
         zip_code=profile.zip_code,
         due_date=profile.due_date.isoformat(),
         current_savings=profile.current_savings,
+        number_of_children=profile.number_of_children,
         childcare_preference=profile.childcare_preference,
         partner1_leave=profile.partner1_leave,
         partner2_leave=profile.partner2_leave,
         monthly_housing_cost=profile.monthly_housing_cost,
+        monthly_credit_card_expenses=profile.monthly_credit_card_expenses,
         created_at=profile.created_at.isoformat(),
         updated_at=profile.updated_at.isoformat()
     )

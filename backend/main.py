@@ -1,5 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from datetime import datetime, timezone
 from backend.config import settings
 from backend.database import connect_to_mongo, close_mongo_connection, ping_database
@@ -10,6 +12,17 @@ app = FastAPI(
     description="Backend API for NestWorth baby budget calculator",
     version="1.0.0"
 )
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """Custom handler for validation errors to provide better error messages."""
+    print(f"Validation error on {request.method} {request.url}")
+    print(f"Error details: {exc.errors()}")
+    print(f"Request body: {exc.body}")
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={"detail": exc.errors(), "body": exc.body},
+    )
 
 # CORS configuration
 app.add_middleware(

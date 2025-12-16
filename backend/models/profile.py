@@ -33,10 +33,12 @@ class FinancialProfileBase(BaseModel):
     zip_code: str = Field(min_length=5, max_length=5, alias="zipCode")
     due_date: date = Field(alias="dueDate")
     current_savings: float = Field(ge=0, alias="currentSavings")
+    number_of_children: int = Field(default=1, ge=1, le=10, alias="numberOfChildren")
     childcare_preference: Literal["daycare", "nanny", "stay-at-home"] = Field(alias="childcarePreference")
     partner1_leave: LeaveDetails = Field(alias="partner1Leave")
     partner2_leave: LeaveDetails = Field(alias="partner2Leave")
     monthly_housing_cost: float = Field(ge=0, alias="monthlyHousingCost")
+    monthly_credit_card_expenses: float = Field(default=0.0, ge=0, alias="monthlyCreditCardExpenses")
     
     @field_validator('zip_code')
     @classmethod
@@ -79,10 +81,12 @@ class FinancialProfile(FinancialProfileBase):
                 "zipCode": "10001",
                 "dueDate": "2026-04-15",
                 "currentSavings": 10000.0,
+                "numberOfChildren": 1,
                 "childcarePreference": "daycare",
                 "partner1Leave": {"durationWeeks": 12, "percentPaid": 100},
                 "partner2Leave": {"durationWeeks": 12, "percentPaid": 60},
                 "monthlyHousingCost": 2000.0,
+                "monthlyCreditCardExpenses": 500.0,
                 "createdAt": "2025-12-15T10:05:00Z",
                 "updatedAt": "2025-12-15T10:05:00Z"
             }
@@ -99,10 +103,12 @@ class FinancialProfileResponse(BaseModel):
     zip_code: str = Field(alias="zipCode")
     due_date: str = Field(alias="dueDate")  # ISO date string for frontend
     current_savings: float = Field(alias="currentSavings")
+    number_of_children: int = Field(alias="numberOfChildren")
     childcare_preference: str = Field(alias="childcarePreference")
     partner1_leave: LeaveDetails = Field(alias="partner1Leave")
     partner2_leave: LeaveDetails = Field(alias="partner2Leave")
     monthly_housing_cost: float = Field(alias="monthlyHousingCost")
+    monthly_credit_card_expenses: float = Field(alias="monthlyCreditCardExpenses")
     created_at: str = Field(alias="createdAt")  # ISO datetime string
     updated_at: str = Field(alias="updatedAt")  # ISO datetime string
     
@@ -118,10 +124,12 @@ class FinancialProfileResponse(BaseModel):
                 "zipCode": "10001",
                 "dueDate": "2026-04-15",
                 "currentSavings": 10000.0,
+                "numberOfChildren": 1,
                 "childcarePreference": "daycare",
                 "partner1Leave": {"durationWeeks": 12, "percentPaid": 100},
                 "partner2Leave": {"durationWeeks": 12, "percentPaid": 60},
                 "monthlyHousingCost": 2000.0,
+                "monthlyCreditCardExpenses": 500.0,
                 "createdAt": "2025-12-15T10:05:00Z",
                 "updatedAt": "2025-12-15T10:05:00Z"
             }

@@ -113,141 +113,147 @@ def generate_pdf(projection: dict[str, Any], summary: str) -> BytesIO:
     section_style = ParagraphStyle(
         'SectionHeader',
         parent=styles['Heading2'],
-        fontSize=16,
+        fontSize=18,
         textColor=colors.HexColor('#1e40af'),
         spaceAfter=12,
-        spaceBefore=20
+        spaceBefore=20,
+        alignment=TA_LEFT
     )
     
     # Title
-    elements.append(Paragraph("NestWorth Financial Plan", title_style))
+    elements.append(Paragraph("Your Baby Blueprint", title_style))
     elements.append(Paragraph(
         f"Generated on {datetime.now().strftime('%B %d, %Y')}",
         subtitle_style
     ))
-    elements.append(Spacer(1, 0.3 * inch))
+    elements.append(Spacer(1, 0.5 * inch))
     
-    # Executive Summary
-    elements.append(Paragraph("Executive Summary", section_style))
-    
-    profile = projection.get('profile', {})
-    total_cost = projection.get('totalCost', 0)
-    yearly_projections = projection.get('yearlyProjections', [])
-    
-    summary_data = [
-        ['Total 5-Year Cost:', format_currency(total_cost)],
-        ['Partner 1 Income:', format_currency(profile.get('partner1Income', 0) * 12)],
-        ['Partner 2 Income:', format_currency(profile.get('partner2Income', 0) * 12)],
-        ['Current Savings:', format_currency(profile.get('currentSavings', 0))],
-        ['Childcare Preference:', profile.get('childcarePreference', 'N/A').replace('-', ' ').title()],
-    ]
-    
-    summary_table = Table(summary_data, colWidths=[3 * inch, 2.5 * inch])
-    summary_table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#f3f4f6')),
-        ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
-        ('ALIGN', (0, 0), (0, -1), 'LEFT'),
-        ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
-        ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
-        ('FONTSIZE', (0, 0), (-1, -1), 10),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
-        ('TOPPADDING', (0, 0), (-1, -1), 8),
-        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
-    ]))
-    
-    elements.append(summary_table)
-    elements.append(Spacer(1, 0.3 * inch))
-    
-    # Year-by-Year Breakdown
-    elements.append(Paragraph("Year-by-Year Breakdown", section_style))
-    
-    yearly_data = [['Year', 'Total Income', 'Total Expenses', 'Net Cashflow', 'Ending Balance']]
-    
-    for year_proj in yearly_projections:
-        year_num = year_proj.get('year', 0)
-        total_income = year_proj.get('totalIncome', 0)
-        total_expenses = year_proj.get('totalExpenses', 0)
-        net_cashflow = year_proj.get('netCashflow', 0)
-        ending_balance = year_proj.get('endingBalance', 0)
-        
-        yearly_data.append([
-            f"Year {year_num}",
-            format_currency(total_income),
-            format_currency(total_expenses),
-            format_currency(net_cashflow),
-            format_currency(ending_balance)
-        ])
-    
-    yearly_table = Table(yearly_data, colWidths=[1 * inch, 1.5 * inch, 1.5 * inch, 1.5 * inch, 1.5 * inch])
-    yearly_table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#2563eb')),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, 0), 10),
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 10),
-        ('TOPPADDING', (0, 0), (-1, 0), 10),
-        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
-        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-        ('FONTSIZE', (0, 1), (-1, -1), 9),
-        ('BOTTOMPADDING', (0, 1), (-1, -1), 8),
-        ('TOPPADDING', (0, 1), (-1, -1), 8),
-    ]))
-    
-    elements.append(yearly_table)
-    elements.append(Spacer(1, 0.3 * inch))
-    
-    # Warnings
-    warnings = projection.get('warnings', [])
-    if warnings:
-        elements.append(Paragraph("Important Warnings", section_style))
-        
-        for warning in warnings:
-            severity = warning.get('severity', 'info')
-            message = warning.get('message', '')
-            
-            # Color code by severity
-            if severity == 'critical':
-                color = colors.red
-            elif severity == 'warning':
-                color = colors.orange
-            else:
-                color = colors.blue
-            
-            warning_style = ParagraphStyle(
-                'Warning',
-                parent=styles['BodyText'],
-                textColor=color,
-                leftIndent=20,
-                bulletIndent=10
-            )
-            
-            elements.append(Paragraph(f"• {message}", warning_style))
-            elements.append(Spacer(1, 0.05 * inch))
-        
-        elements.append(Spacer(1, 0.2 * inch))
-    
-    # Page break before AI summary
-    elements.append(PageBreak())
-    
-    # AI Summary
-    elements.append(Paragraph("AI Financial Blueprint", section_style))
-    elements.append(Spacer(1, 0.1 * inch))
+    # ============================================================
+    # SECTION 1: FINANCIAL BLUEPRINT (AI Summary)
+    # ============================================================
+    elements.append(Paragraph("Financial Blueprint", section_style))
+    elements.append(Spacer(1, 0.2 * inch))
     
     # Parse markdown summary
     summary_elements = parse_markdown_to_paragraphs(summary, styles)
     elements.extend(summary_elements)
     
+    # Page break before monthly breakdown
+    elements.append(PageBreak())
+    
+    # ============================================================
+    # SECTION 2: MONTHLY INCOME & EXPENSES (Years 1-5)
+    # ============================================================
+    elements.append(Paragraph("Monthly Income & Expenses Breakdown", section_style))
+    elements.append(Spacer(1, 0.2 * inch))
+    
+    yearly_projections = projection.get('yearlyProjections', [])
+    
+    # Create Excel-style grid for each year
+    for year_proj in yearly_projections:
+        year_num = year_proj.get('year', 0)
+        monthly_projections = year_proj.get('monthlyProjections', [])
+        
+        # Year header
+        year_header_style = ParagraphStyle(
+            'YearHeader',
+            parent=styles['Heading3'],
+            fontSize=14,
+            textColor=colors.HexColor('#2563eb'),
+            spaceAfter=8,
+            spaceBefore=12
+        )
+        elements.append(Paragraph(f"Year {year_num}", year_header_style))
+        
+        # Build monthly table
+        monthly_data = [['Month', 'Income', 'Expenses', 'Net Cashflow', 'Balance']]
+        
+        for month_proj in monthly_projections:
+            month_num = month_proj.get('month', 0)
+            income = month_proj.get('income', 0)
+            expenses = month_proj.get('expenses', 0)
+            net_cashflow = month_proj.get('netCashflow', 0)
+            ending_balance = month_proj.get('endingBalance', 0)
+            
+            monthly_data.append([
+                f"Month {month_num}",
+                format_currency(income),
+                format_currency(expenses),
+                format_currency(net_cashflow),
+                format_currency(ending_balance)
+            ])
+        
+        # Add year totals row
+        year_total_income = year_proj.get('totalIncome', 0)
+        year_total_expenses = year_proj.get('totalExpenses', 0)
+        year_net_cashflow = year_proj.get('netCashflow', 0)
+        year_ending_balance = year_proj.get('endingBalance', 0)
+        
+        monthly_data.append([
+            'Year Total',
+            format_currency(year_total_income),
+            format_currency(year_total_expenses),
+            format_currency(year_net_cashflow),
+            format_currency(year_ending_balance)
+        ])
+        
+        # Create table with Excel-style formatting
+        monthly_table = Table(monthly_data, colWidths=[1.2 * inch, 1.2 * inch, 1.2 * inch, 1.2 * inch, 1.2 * inch])
+        monthly_table.setStyle(TableStyle([
+            # Header row
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#2563eb')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 9),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+            ('TOPPADDING', (0, 0), (-1, 0), 8),
+            
+            # Data rows
+            ('BACKGROUND', (0, 1), (-1, -2), colors.white),
+            ('ALIGN', (0, 1), (0, -1), 'LEFT'),
+            ('ALIGN', (1, 1), (-1, -1), 'RIGHT'),
+            ('FONTNAME', (0, 1), (-1, -2), 'Helvetica'),
+            ('FONTSIZE', (0, 1), (-1, -2), 8),
+            ('BOTTOMPADDING', (0, 1), (-1, -2), 5),
+            ('TOPPADDING', (0, 1), (-1, -2), 5),
+            
+            # Total row
+            ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor('#e5e7eb')),
+            ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, -1), (-1, -1), 9),
+            ('BOTTOMPADDING', (0, -1), (-1, -1), 8),
+            ('TOPPADDING', (0, -1), (-1, -1), 8),
+            
+            # Grid
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+            ('LINEABOVE', (0, -1), (-1, -1), 1, colors.grey),
+        ]))
+        
+        elements.append(monthly_table)
+        elements.append(Spacer(1, 0.2 * inch))
+    
     # Page break before assumptions
     elements.append(PageBreak())
     
-    # Assumptions
+    # ============================================================
+    # SECTION 3: ASSUMPTIONS
+    # ============================================================
     elements.append(Paragraph("Calculation Assumptions", section_style))
+    elements.append(Spacer(1, 0.2 * inch))
     
     assumptions = projection.get('assumptions', {})
+    profile = projection.get('profile', {})
     
+    # Build comprehensive assumptions list
     assumptions_data = []
+    
+    # Income assumptions
+    assumptions_data.append(['Income', ''])
+    assumptions_data.append(['  Partner 1 Monthly Income', format_currency(profile.get('partner1Income', 0))])
+    assumptions_data.append(['  Partner 2 Monthly Income', format_currency(profile.get('partner2Income', 0))])
+    assumptions_data.append(['  Current Savings', format_currency(profile.get('currentSavings', 0))])
+    assumptions_data.append(['', ''])
     
     # One-time costs
     one_time = assumptions.get('oneTimeCosts', {})
@@ -256,6 +262,7 @@ def generate_pdf(projection: dict[str, Any], summary: str) -> BytesIO:
         for key, value in one_time.items():
             label = key.replace('_', ' ').title()
             assumptions_data.append([f"  {label}", format_currency(value)])
+        assumptions_data.append(['', ''])
     
     # Recurring costs
     recurring = assumptions.get('recurringCosts', {})
@@ -264,16 +271,24 @@ def generate_pdf(projection: dict[str, Any], summary: str) -> BytesIO:
         for key, value in recurring.items():
             label = key.replace('_', ' ').title()
             assumptions_data.append([f"  {label}", format_currency(value)])
+        assumptions_data.append(['', ''])
     
     # Childcare costs
     childcare = assumptions.get('childcareCosts', {})
     if childcare:
-        assumptions_data.append(['Childcare Costs', ''])
+        assumptions_data.append(['Childcare', ''])
+        assumptions_data.append([f"  Preference", profile.get('childcarePreference', 'N/A').replace('-', ' ').title()])
         assumptions_data.append([f"  Monthly Cost", format_currency(childcare.get('monthlyCost', 0))])
         assumptions_data.append([f"  Start Month", str(childcare.get('startMonth', 0))])
+        assumptions_data.append(['', ''])
+    
+    # Other profile details
+    assumptions_data.append(['Other Details', ''])
+    assumptions_data.append([f"  ZIP Code", profile.get('zipCode', 'N/A')])
+    assumptions_data.append([f"  Due Date", profile.get('dueDate', 'N/A')])
     
     if assumptions_data:
-        assumptions_table = Table(assumptions_data, colWidths=[4 * inch, 2 * inch])
+        assumptions_table = Table(assumptions_data, colWidths=[4.5 * inch, 2 * inch])
         assumptions_table.setStyle(TableStyle([
             ('ALIGN', (0, 0), (0, -1), 'LEFT'),
             ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
@@ -281,10 +296,90 @@ def generate_pdf(projection: dict[str, Any], summary: str) -> BytesIO:
             ('FONTSIZE', (0, 0), (-1, -1), 9),
             ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
             ('TOPPADDING', (0, 0), (-1, -1), 6),
-            ('LINEBELOW', (0, 0), (-1, 0), 0.5, colors.grey),
+            # Bold category headers
+            ('FONTNAME', (0, 0), (0, 0), 'Helvetica-Bold'),
+            ('FONTNAME', (0, 4), (0, 4), 'Helvetica-Bold'),
+            ('FONTNAME', (0, 5), (0, 5), 'Helvetica-Bold'),
+            ('FONTNAME', (0, 10), (0, 10), 'Helvetica-Bold'),
+            ('FONTNAME', (0, 14), (0, 14), 'Helvetica-Bold'),
+            ('FONTNAME', (0, 19), (0, 19), 'Helvetica-Bold'),
         ]))
         
         elements.append(assumptions_table)
+    
+    # Page break before upgrade call
+    elements.append(PageBreak())
+    
+    # ============================================================
+    # UPGRADE TO PREMIUM CALL
+    # ============================================================
+    upgrade_title_style = ParagraphStyle(
+        'UpgradeTitle',
+        parent=styles['Heading1'],
+        fontSize=22,
+        textColor=colors.HexColor('#2563eb'),
+        spaceAfter=20,
+        alignment=TA_CENTER
+    )
+    
+    upgrade_text_style = ParagraphStyle(
+        'UpgradeText',
+        parent=styles['Normal'],
+        fontSize=12,
+        textColor=colors.black,
+        spaceAfter=12,
+        alignment=TA_CENTER,
+        leading=18
+    )
+    
+    elements.append(Spacer(1, 1.5 * inch))
+    elements.append(Paragraph("Unlock Your Full Financial Potential", upgrade_title_style))
+    elements.append(Spacer(1, 0.3 * inch))
+    
+    elements.append(Paragraph(
+        "Upgrade to <b>NestWorth Premium</b> for:",
+        upgrade_text_style
+    ))
+    elements.append(Spacer(1, 0.2 * inch))
+    
+    premium_features = [
+        "✓ Detailed month-by-month expense tracking",
+        "✓ Customizable financial scenarios and what-if analysis",
+        "✓ Advanced savings optimization strategies",
+        "✓ Real-time updates as your situation changes",
+        "✓ Export to Excel for deeper analysis",
+        "✓ Priority support from financial planning experts"
+    ]
+    
+    feature_style = ParagraphStyle(
+        'FeatureText',
+        parent=styles['Normal'],
+        fontSize=11,
+        textColor=colors.black,
+        spaceAfter=8,
+        leftIndent=100,
+        alignment=TA_LEFT
+    )
+    
+    for feature in premium_features:
+        elements.append(Paragraph(feature, feature_style))
+    
+    elements.append(Spacer(1, 0.4 * inch))
+    
+    cta_style = ParagraphStyle(
+        'CTAText',
+        parent=styles['Normal'],
+        fontSize=14,
+        textColor=colors.HexColor('#2563eb'),
+        spaceAfter=10,
+        alignment=TA_CENTER,
+        fontName='Helvetica-Bold'
+    )
+    
+    elements.append(Paragraph(
+        "Visit nestworth.com/premium to upgrade today!",
+        cta_style
+    ))
     
     # Build PDF
     doc.build(elements)

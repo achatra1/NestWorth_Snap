@@ -62,8 +62,7 @@ export function generateAISummary(projection: FiveYearProjection): string {
   summary += `**Key Drivers**:\n`;
   summary += `- Childcare: ${formatCurrency(toddlerChildcare)} (${toddlerChildcarePercent.toFixed(1)}% of income)\n`;
   summary += `- Food (solid foods): ${formatCurrency(year2.expenseBreakdown.food + year3.expenseBreakdown.food)}\n`;
-  summary += `- Clothing (growing fast): ${formatCurrency(year2.expenseBreakdown.clothing + year3.expenseBreakdown.clothing)}\n`;
-  summary += `- Healthcare: ${formatCurrency(year2.expenseBreakdown.healthcare + year3.expenseBreakdown.healthcare)}\n\n`;
+  summary += `- Miscellaneous (supplies, toys, etc.): ${formatCurrency(year2.expenseBreakdown.miscellaneous + year3.expenseBreakdown.miscellaneous)}\n\n`;
   
   if (profile.childcarePreference !== 'stay-at-home') {
     summary += `*Note: Childcare is your largest recurring expense during this period.*\n\n`;
@@ -83,7 +82,6 @@ export function generateAISummary(projection: FiveYearProjection): string {
   summary += `**Key Drivers**:\n`;
   summary += `- Childcare: ${formatCurrency(preschoolChildcare)} (${preschoolChildcarePercent.toFixed(1)}% of income)\n`;
   summary += `- Food (increased appetite): ${formatCurrency(year4.expenseBreakdown.food + year5.expenseBreakdown.food)}\n`;
-  summary += `- Clothing (larger sizes): ${formatCurrency(year4.expenseBreakdown.clothing + year5.expenseBreakdown.clothing)}\n`;
   summary += `- Activities/supplies: ${formatCurrency(year4.expenseBreakdown.miscellaneous + year5.expenseBreakdown.miscellaneous)}\n\n`;
   
   summary += `*Note: Diaper costs decrease/end during this period as potty training completes.*\n\n`;
@@ -135,9 +133,9 @@ export function generateAISummary(projection: FiveYearProjection): string {
   summary += `- Diapers & wipes (months 0-30)\n`;
   summary += `- Formula (months 0-12)\n`;
   summary += `- Baby food (months 6+)\n`;
-  summary += `- Clothing (ongoing, sizes change)\n`;
-  summary += `- Healthcare (co-pays, medications)\n`;
-  summary += `- Childcare (month ${assumptions.childcareStartMonth}+)\n\n`;
+  summary += `- Miscellaneous supplies and activities\n`;
+  summary += `- Childcare (month ${assumptions.childcareStartMonth}+)\n`;
+  summary += `\n*Note: Healthcare and clothing costs are not included in these projections.*\n\n`;
   
   // Financial Pressure Points
   summary += `## Financial Pressure Points\n\n`;
@@ -229,16 +227,16 @@ export function generateAISummary(projection: FiveYearProjection): string {
   summary += `- **Childcare Start**: Month ${assumptions.childcareStartMonth}\n`;
   summary += `- **Formula Feeding**: Assumed for months 0-12 (breastfeeding families will have lower costs)\n`;
   summary += `- **Diaper Usage**: Assumed through month 30 (potty training timeline varies)\n`;
-  summary += `- **Healthcare**: Co-pays and OTC medications only (insurance premiums assumed in take-home pay)\n`;
   summary += `- **Inflation**: Costs held constant (conservative assumption)\n`;
   summary += `- **One-Time Purchases**: Essential items only (crib, car seat, stroller, etc.)\n`;
-  summary += `- **Housing**: Current housing costs maintained (no move assumed)\n\n`;
+  summary += `- **Housing**: Current housing costs maintained (no move assumed)\n`;
+  summary += `- **Excluded Costs**: Healthcare (co-pays, medications) and clothing are not included in projections\n\n`;
   
   // Disclaimer
   summary += `---\n\n`;
   summary += `## Important Disclaimer\n\n`;
   summary += `This budget blueprint is based on your specific inputs and national/regional cost data. Actual costs will vary based on your choices, location, and circumstances. This is not financial advice. Consider consulting a financial advisor for personalized guidance.\n\n`;
-  summary += `**What's Not Included**: Health insurance premiums (assumed in take-home pay), college savings, life insurance, will/estate planning, baby gear beyond essentials, photography/keepsakes, travel with baby.\n\n`;
+  summary += `**What's Not Included**: Healthcare costs (co-pays, medications), clothing, health insurance premiums (assumed in take-home pay), college savings, life insurance, will/estate planning, baby gear beyond essentials, photography/keepsakes, travel with baby.\n\n`;
   summary += `**Planning Horizon**: This analysis covers years 0-5. Costs continue beyond age 5 (K-12 education, activities, etc.).`;
   
   return summary;

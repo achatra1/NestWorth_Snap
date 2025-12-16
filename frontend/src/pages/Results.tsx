@@ -9,7 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Download, Edit, AlertTriangle, Info, AlertCircle, Baby, TrendingUp, DollarSign, ChevronDown, ChevronRight, Home } from 'lucide-react';
+import { Download, Edit, AlertTriangle, Info, AlertCircle, Baby, TrendingUp, DollarSign, ChevronDown, ChevronRight, Home, Crown } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
 export default function Results() {
@@ -243,18 +243,14 @@ export default function Results() {
   const importantWarnings = projection.warnings.filter(w => w.severity === 'important');
   const infoWarnings = projection.warnings.filter(w => w.severity === 'informational');
 
-  // Calculate key metrics for dashboard
-  // Total childcare includes: daycare/nanny + diapers + food + healthcare + clothing + one-time + miscellaneous
+  // All calculations are done in the backend - we just display the data
+  // Total childcare includes: daycare/nanny + diapers + food + one-time + miscellaneous
   const totalChildcare = projection.yearlyProjections.reduce((sum, y) =>
     sum + y.expenseBreakdown.childcare + y.expenseBreakdown.diapers +
-    y.expenseBreakdown.food + y.expenseBreakdown.healthcare +
-    y.expenseBreakdown.clothing + y.expenseBreakdown.oneTime +
+    y.expenseBreakdown.food + y.expenseBreakdown.oneTime +
     y.expenseBreakdown.miscellaneous, 0);
-  const totalHousing = projection.yearlyProjections.reduce((sum, y) => sum + y.expenseBreakdown.housing, 0);
-  const totalChildcareAndHousing = totalChildcare + totalHousing;
-  const householdIncome = (profile.partner1Income + profile.partner2Income) * 12;
 
-  // Calculate income breakdown for each year
+  // Helper function to get income breakdown for a year from backend data
   const getYearIncomeBreakdown = (year: number) => {
     const yearMonths = projection.monthlyProjections.filter(m => m.year === year);
     const partner1Total = yearMonths.reduce((sum, m) => sum + m.income.partner1, 0);
@@ -294,6 +290,13 @@ export default function Results() {
               <Download className="w-4 h-4 mr-2" />
               {pdfLoading ? 'Generating PDF...' : 'Download PDF'}
             </Button>
+            <Button
+              onClick={() => navigate('/premium')}
+              className="bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-600 hover:to-amber-700 text-white"
+            >
+              <Crown className="w-4 h-4 mr-2" />
+              Upgrade to Premium
+            </Button>
             <Button variant="ghost" onClick={logout}>
               Logout
             </Button>
@@ -302,6 +305,16 @@ export default function Results() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
+        {/* Page Title */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+            A 5-Year Financial Blueprint for Life With a New Baby
+          </h1>
+          <p className="text-lg text-gray-600">
+            More freedom for the moments that matter
+          </p>
+        </div>
+
         {/* Executive Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card>
@@ -332,22 +345,25 @@ export default function Results() {
 
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600">Total Childcare</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-600">Debt-to-Income Ratio</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-2">
-                <Baby className="w-5 h-5 text-purple-600" />
-                <p className="text-2xl font-bold">{formatCurrency(totalChildcare)}</p>
+                <TrendingUp className="w-5 h-5 text-purple-600" />
+                <p className="text-2xl font-bold">
+                  {((projection.yearlyProjections.reduce((sum, y) => sum + y.totalExpenses, 0) /
+                    projection.yearlyProjections.reduce((sum, y) => sum + y.totalIncome, 0)) * 100).toFixed(1)}%
+                </p>
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                {((totalChildcare / totalChildcareAndHousing) * 100).toFixed(0)}% of childcare + housing
+                Total expenses vs. income over 5 years
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600">Ending Savings</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-600">Household Networth over 5 years</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-2">
@@ -357,46 +373,25 @@ export default function Results() {
                 </p>
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                {projection.yearlyProjections[4].endingSavings >= profile.currentSavings ? '↑' : '↓'} from {formatCurrency(profile.currentSavings)}
+                Increased from original savings buffer of {formatCurrency(profile.currentSavings)}
               </p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Warnings */}
-        {projection.warnings.length > 0 && (
-          <div className="space-y-3">
-            {criticalWarnings.map((warning, idx) => (
-              <Alert key={idx} variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>{warning.title}</AlertTitle>
-                <AlertDescription>
-                  {warning.message} <strong>{warning.recommendation}</strong>
-                </AlertDescription>
-              </Alert>
-            ))}
-            
-            {importantWarnings.map((warning, idx) => (
-              <Alert key={idx} className="border-orange-500 bg-orange-50">
-                <AlertTriangle className="h-4 w-4 text-orange-600" />
-                <AlertTitle className="text-orange-900">{warning.title}</AlertTitle>
-                <AlertDescription className="text-orange-800">
-                  {warning.message} <strong>{warning.recommendation}</strong>
-                </AlertDescription>
-              </Alert>
-            ))}
-            
-            {infoWarnings.map((warning, idx) => (
-              <Alert key={idx} className="border-blue-500 bg-blue-50">
-                <Info className="h-4 w-4 text-blue-600" />
-                <AlertTitle className="text-blue-900">{warning.title}</AlertTitle>
-                <AlertDescription className="text-blue-800">
-                  {warning.message} <strong>{warning.recommendation}</strong>
-                </AlertDescription>
-              </Alert>
-            ))}
-          </div>
-        )}
+        {/* Premium Upsell Banner */}
+        <Alert className="border-blue-500 bg-gradient-to-r from-blue-50 to-indigo-50">
+          <Info className="h-5 w-5 text-blue-600" />
+          <AlertTitle className="text-blue-900 text-lg font-semibold">Your Baby Blueprint</AlertTitle>
+          <AlertDescription className="text-blue-800">
+            <p className="mb-3">
+              Below is your Baby Blueprint — a first look at the financial impact of welcoming a child for the first 5 years of their life.
+            </p>
+            <p className="font-medium">
+              Go Premium to unlock tailored planning recommendations, smart ways to save, and insights into financial support options available to your family.
+            </p>
+          </AlertDescription>
+        </Alert>
 
         {/* Tabs */}
         <Tabs defaultValue="summary" className="space-y-4">
@@ -436,12 +431,10 @@ export default function Results() {
                     
                     // Calculate expense categories
                     const householdExpenses = year.expenseBreakdown.housing;
-                    const childcareExpenses = 
+                    const childcareExpenses =
                       year.expenseBreakdown.childcare +
                       year.expenseBreakdown.diapers +
                       year.expenseBreakdown.food +
-                      year.expenseBreakdown.healthcare +
-                      year.expenseBreakdown.clothing +
                       year.expenseBreakdown.oneTime +
                       year.expenseBreakdown.miscellaneous;
                     
@@ -530,6 +523,12 @@ export default function Results() {
                                           <span className="text-gray-600">Housing (Rent/Mortgage)</span>
                                           <span className="text-gray-700">{formatCurrency(year.expenseBreakdown.housing)}</span>
                                         </div>
+                                        {year.expenseBreakdown.creditCard > 0 && (
+                                          <div className="flex justify-between items-center text-sm">
+                                            <span className="text-gray-600">Credit Card Payments</span>
+                                            <span className="text-gray-700">{formatCurrency(year.expenseBreakdown.creditCard)}</span>
+                                          </div>
+                                        )}
                                       </div>
                                     </div>
 
@@ -544,33 +543,36 @@ export default function Results() {
                                       </div>
                                       <div className="pl-6 space-y-1">
                                         {year.expenseBreakdown.childcare > 0 && (
-                                          <div className="flex justify-between items-center text-sm">
-                                            <span className="text-gray-600">Childcare ({profile.childcarePreference})</span>
-                                            <span className="text-gray-700">{formatCurrency(year.expenseBreakdown.childcare)}</span>
+                                          <div className="space-y-0.5">
+                                            <div className="flex justify-between items-center text-sm">
+                                              <span className="text-gray-600">Childcare ({profile.childcarePreference})</span>
+                                              <span className="text-gray-700">{formatCurrency(year.expenseBreakdown.childcare)}</span>
+                                            </div>
+                                            <div className="flex justify-between items-center text-xs text-gray-500 pl-4">
+                                              <span>{formatCurrency(year.expenseBreakdown.childcare / 12)}/month × 12 months</span>
+                                            </div>
                                           </div>
                                         )}
                                         {year.expenseBreakdown.diapers > 0 && (
-                                          <div className="flex justify-between items-center text-sm">
-                                            <span className="text-gray-600">Diapers & Wipes</span>
-                                            <span className="text-gray-700">{formatCurrency(year.expenseBreakdown.diapers)}</span>
+                                          <div className="space-y-0.5">
+                                            <div className="flex justify-between items-center text-sm">
+                                              <span className="text-gray-600">Diapers & Wipes</span>
+                                              <span className="text-gray-700">{formatCurrency(year.expenseBreakdown.diapers)}</span>
+                                            </div>
+                                            <div className="flex justify-between items-center text-xs text-gray-500 pl-4">
+                                              <span>{formatCurrency(year.expenseBreakdown.diapers / 12)}/month × 12 months</span>
+                                            </div>
                                           </div>
                                         )}
                                         {year.expenseBreakdown.food > 0 && (
-                                          <div className="flex justify-between items-center text-sm">
-                                            <span className="text-gray-600">Food (Formula/Baby Food)</span>
-                                            <span className="text-gray-700">{formatCurrency(year.expenseBreakdown.food)}</span>
-                                          </div>
-                                        )}
-                                        {year.expenseBreakdown.healthcare > 0 && (
-                                          <div className="flex justify-between items-center text-sm">
-                                            <span className="text-gray-600">Healthcare (Co-pays/Meds)</span>
-                                            <span className="text-gray-700">{formatCurrency(year.expenseBreakdown.healthcare)}</span>
-                                          </div>
-                                        )}
-                                        {year.expenseBreakdown.clothing > 0 && (
-                                          <div className="flex justify-between items-center text-sm">
-                                            <span className="text-gray-600">Clothing</span>
-                                            <span className="text-gray-700">{formatCurrency(year.expenseBreakdown.clothing)}</span>
+                                          <div className="space-y-0.5">
+                                            <div className="flex justify-between items-center text-sm">
+                                              <span className="text-gray-600">Food (Formula/Baby Food)</span>
+                                              <span className="text-gray-700">{formatCurrency(year.expenseBreakdown.food)}</span>
+                                            </div>
+                                            <div className="flex justify-between items-center text-xs text-gray-500 pl-4">
+                                              <span>{formatCurrency(year.expenseBreakdown.food / 12)}/month × 12 months</span>
+                                            </div>
                                           </div>
                                         )}
                                         {year.expenseBreakdown.oneTime > 0 && (
@@ -580,9 +582,14 @@ export default function Results() {
                                           </div>
                                         )}
                                         {year.expenseBreakdown.miscellaneous > 0 && (
-                                          <div className="flex justify-between items-center text-sm">
-                                            <span className="text-gray-600">Miscellaneous (Toys, Books, etc.)</span>
-                                            <span className="text-gray-700">{formatCurrency(year.expenseBreakdown.miscellaneous)}</span>
+                                          <div className="space-y-0.5">
+                                            <div className="flex justify-between items-center text-sm">
+                                              <span className="text-gray-600">Miscellaneous (Toys, Books, etc.)</span>
+                                              <span className="text-gray-700">{formatCurrency(year.expenseBreakdown.miscellaneous)}</span>
+                                            </div>
+                                            <div className="flex justify-between items-center text-xs text-gray-500 pl-4">
+                                              <span>{formatCurrency(year.expenseBreakdown.miscellaneous / 12)}/month × 12 months</span>
+                                            </div>
                                           </div>
                                         )}
                                       </div>
@@ -648,7 +655,17 @@ export default function Results() {
                   Transparency into how we calculated your projections
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent>
+                <Alert className="mb-6 border-indigo-500 bg-indigo-50">
+                  <Info className="h-4 w-4 text-indigo-600" />
+                  <AlertDescription className="text-indigo-900">
+                    This blueprint is grounded in your selected assumptions during onboarding, location-specific cost data by ZIP code, and public government datasets that reflect real-world childcare costs. To customize or override assumptions and to conduct a scenario analysis, get personalized recommendations, subscribe to Premium.
+                  </AlertDescription>
+                </Alert>
+              </CardContent>
+              <CardHeader className="pt-0">
+              </CardHeader>
+              <CardContent className="space-y-4 pt-0">
                 {assumptionsLoading ? (
                   <div className="flex items-center justify-center py-8">
                     <div className="text-center">

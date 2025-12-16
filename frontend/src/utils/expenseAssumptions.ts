@@ -48,8 +48,6 @@ export function getBabyExpenseAssumptions(
       wipes: 0, // Included in diapers category
       formula: recurringCostsMonth0['Formula & Food'] || 150,
       babyFood: 0, // Starts at month 6
-      clothing: recurringCostsMonth0['Clothing'] || 50,
-      healthcare: recurringCostsMonth0['Healthcare'] || 75,
       miscellaneous: recurringCostsMonth0['Miscellaneous'] || 100,
     },
     childcareCosts: {
@@ -65,12 +63,11 @@ export function getAssumptionExplanations(assumptions: ExpenseAssumptions): stri
   return [
     `Regional Cost Band: ${assumptions.costBand.toUpperCase()} - Based on your ZIP code, we've adjusted costs to reflect your local market using reference data from childcare cost surveys.`,
     `One-Time Costs: Essential items include crib ($${assumptions.oneTimeCosts.crib}), stroller ($${assumptions.oneTimeCosts.stroller}), car seat ($${assumptions.oneTimeCosts.carSeat}), high chair ($${assumptions.oneTimeCosts.highChair}), baby monitor ($${assumptions.oneTimeCosts.babyMonitor}), and changing table ($${assumptions.oneTimeCosts.changingTable}). These are purchased in the first few months.`,
-    `Monthly Recurring Costs: Diapers & wipes ($${assumptions.monthlyRecurring.diapers}/mo), formula ($${assumptions.monthlyRecurring.formula}/mo for first year), clothing ($${assumptions.monthlyRecurring.clothing}/mo), healthcare co-pays ($${assumptions.monthlyRecurring.healthcare}/mo), and miscellaneous expenses ($${assumptions.monthlyRecurring.miscellaneous}/mo).`,
+    `Monthly Recurring Costs: Diapers & wipes ($${assumptions.monthlyRecurring.diapers}/mo), formula ($${assumptions.monthlyRecurring.formula}/mo for first year), and miscellaneous expenses ($${assumptions.monthlyRecurring.miscellaneous}/mo). Healthcare and clothing costs are not included in projections.`,
     `Childcare Costs: Based on your ZIP code, ${assumptions.childcareCosts.daycare > 0 ? `daycare costs approximately $${assumptions.childcareCosts.daycare}/month` : ''} ${assumptions.childcareCosts.nanny > 0 ? `and nanny costs approximately $${assumptions.childcareCosts.nanny}/month` : ''}. We assume childcare starts at month ${assumptions.childcareStartMonth}.`,
     `Parental Leave: Income adjustments are calculated based on your specified leave duration and percentage paid.`,
     `Formula Feeding: We assume formula feeding for the first 12 months. Breastfeeding families will have lower costs.`,
-    `Healthcare: Estimates include routine co-pays and over-the-counter medications. Does not include insurance premiums (assumed already deducted from take-home pay).`,
-    `Age-Based Adjustments: Costs change as baby grows - formula ends at 12 months, solid food starts at 6 months, clothing sizes change, and diaper usage decreases over time.`,
+    `Age-Based Adjustments: Costs change as baby grows - formula ends at 12 months, solid food starts at 6 months, and diaper usage decreases over time.`,
     `Data Sources: Costs are based on national surveys and regional childcare cost data. Your actual costs may vary based on specific choices and circumstances.`,
   ];
 }

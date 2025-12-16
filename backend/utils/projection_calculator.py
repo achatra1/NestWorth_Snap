@@ -236,16 +236,22 @@ def generate_warnings(
         })
     
     # Check for low savings buffer
+    # Calculate 3 months of living expenses based on Year 2 Month 1 (month 13)
+    # This represents housing + childcare expenses when childcare has started
     min_savings = min(m['cumulative_savings'] for m in monthly_projections)
-    recommended_buffer = (profile['partner1_income'] + profile['partner2_income']) * 3  # 3 months expenses
+    
+    # Get Year 2 Month 1 expenses (month 13, index 12)
+    year2_month1 = monthly_projections[12] if len(monthly_projections) > 12 else monthly_projections[0]
+    # Three months of living expenses = (housing + childcare) * 3
+    recommended_buffer = (year2_month1['expenses']['housing'] + year2_month1['expenses']['childcare']) * 3
     
     if min_savings < recommended_buffer:
         warnings.append({
             'severity': 'important',
             'title': 'Low Savings Buffer',
-            'message': f"Your savings may drop below the recommended 3-month emergency fund ({format_currency(recommended_buffer)}).",
+            'message': f"Your savings may drop below the recommended 3-month emergency fund ({format_currency(recommended_buffer)}), calculated as 3 months of Year 2 living expenses (housing + childcare).",
             'months_affected': [],
-            'recommendation': 'Try to build up your emergency fund before baby arrives. Aim for at least 3-6 months of expenses.',
+            'recommendation': 'Try to build up your emergency fund before baby arrives. Aim for at least 3 months of living expenses based on your Year 2 housing and childcare costs.',
         })
     
     # Check for high childcare costs

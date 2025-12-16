@@ -142,17 +142,19 @@ def generate_pdf(projection: dict[str, Any], summary: str) -> BytesIO:
     elements.append(PageBreak())
     
     # ============================================================
-    # SECTION 2: MONTHLY INCOME & EXPENSES (Years 1-5)
+    # SECTION 2: DETAILED YEAR-BY-YEAR BREAKDOWN
     # ============================================================
-    elements.append(Paragraph("Monthly Income & Expenses Breakdown", section_style))
+    elements.append(Paragraph("Year-by-Year Financial Breakdown", section_style))
     elements.append(Spacer(1, 0.2 * inch))
     
     yearly_projections = projection.get('yearlyProjections', [])
+    monthly_projections = projection.get('monthlyProjections', [])
+    childcare_pref = profile.get('childcarePreference', 'N/A').replace('-', ' ').title()
     
-    # Create Excel-style grid for each year
+    # Create detailed breakdown for each year
     for year_proj in yearly_projections:
         year_num = year_proj.get('year', 0)
-        monthly_projections = year_proj.get('monthlyProjections', [])
+        expense_breakdown = year_proj.get('expenseBreakdown', {})
         
         # Year header
         year_header_style = ParagraphStyle(
@@ -165,73 +167,128 @@ def generate_pdf(projection: dict[str, Any], summary: str) -> BytesIO:
         )
         elements.append(Paragraph(f"Year {year_num}", year_header_style))
         
-        # Build monthly table
-        monthly_data = [['Month', 'Income', 'Expenses', 'Net Cashflow', 'Balance']]
+        # Calculate income breakdown for this year
+        year_months = [m for m in monthly_projections if m.get('year') == year_num]
+        partner1_income = sum(m.get('income', {}).get('partner1', 0) for m in year_months)
+        partner2_income = sum(m.get('income', {}).get('partner2', 0) for m in year_months)
+        total_income = partner1_income + partner2_income
         
-        for month_proj in monthly_projections:
-            month_num = month_proj.get('month', 0)
-            income = month_proj.get('income', 0)
-            expenses = month_proj.get('expenses', 0)
-            net_cashflow = month_proj.get('netCashflow', 0)
-            ending_balance = month_proj.get('endingBalance', 0)
-            
-            monthly_data.append([
-                f"Month {month_num}",
-                format_currency(income),
-                format_currency(expenses),
-                format_currency(net_cashflow),
-                format_currency(ending_balance)
-            ])
+        # Calculate expense categories
+        housing = expense_breakdown.get('housing', 0)
+        credit_card = expense_breakdown.get('creditCard', 0)
+        childcare = expense_breakdown.get('childcare', 0)
+        diapers = expense_breakdown.get('diapers', 0)
+        food = expense_breakdown.get('food', 0)
+        one_time = expense_breakdown.get('oneTime', 0)
+        miscellaneous = expense_breakdown.get('miscellaneous', 0)
         
-        # Add year totals row
-        year_total_income = year_proj.get('totalIncome', 0)
-        year_total_expenses = year_proj.get('totalExpenses', 0)
-        year_net_cashflow = year_proj.get('netCashflow', 0)
-        year_ending_balance = year_proj.get('endingBalance', 0)
+        household_expenses = housing + credit_card
+        childcare_expenses = childcare + diapers + food + one_time + miscellaneous
+        total_expenses = year_proj.get('totalExpenses', 0)
+        net_cashflow = year_proj.get('netCashflow', 0)
+        ending_savings = year_proj.get('endingSavings', 0)
         
-        monthly_data.append([
-            'Year Total',
-            format_currency(year_total_income),
-            format_currency(year_total_expenses),
-            format_currency(year_net_cashflow),
-            format_currency(year_ending_balance)
-        ])
+        # Build detailed breakdown table
+        breakdown_data = []
         
-        # Create table with Excel-style formatting
-        monthly_table = Table(monthly_data, colWidths=[1.2 * inch, 1.2 * inch, 1.2 * inch, 1.2 * inch, 1.2 * inch])
-        monthly_table.setStyle(TableStyle([
-            # Header row
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#2563eb')),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-            ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 9),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
-            ('TOPPADDING', (0, 0), (-1, 0), 8),
+        # Income section
+        breakdown_data.append(['INCOME BREAKDOWN', ''])
+        breakdown_data.append(['  Partner 1 Income', format_currency(partner1_income)])
+        breakdown_data.append(['  Partner 2 Income', format_currency(partner2_income)])
+        breakdown_data.append(['Total Income', format_currency(total_income)])
+        breakdown_data.append(['', ''])
+        
+        # Household expenses section
+        breakdown_data.append(['HOUSEHOLD EXPENSES', ''])
+        breakdown_data.append(['  Housing (Rent/Mortgage)', format_currency(housing)])
+        breakdown_data.append([f'    ({format_currency(housing / 12)}/month × 12 months)', ''])
+        if credit_card > 0:
+            breakdown_data.append(['  Credit Card Payments', format_currency(credit_card)])
+            breakdown_data.append([f'    ({format_currency(credit_card / 12)}/month × 12 months)', ''])
+        breakdown_data.append(['Household Subtotal', format_currency(household_expenses)])
+        breakdown_data.append(['', ''])
+        
+        # Childcare expenses section
+        breakdown_data.append(['CHILDCARE EXPENSES', ''])
+        if childcare > 0:
+            breakdown_data.append([f'  Childcare ({childcare_pref})', format_currency(childcare)])
+            if year_num == 1:
+                breakdown_data.append([f'    ({format_currency(childcare / 6)}/month × 6 months, starts month 6)', ''])
+            else:
+                breakdown_data.append([f'    ({format_currency(childcare / 12)}/month × 12 months)', ''])
+        if diapers > 0:
+            breakdown_data.append(['  Diapers & Wipes', format_currency(diapers)])
+            breakdown_data.append([f'    ({format_currency(diapers / 12)}/month × 12 months)', ''])
+        if food > 0:
+            breakdown_data.append(['  Food (Formula/Baby Food)', format_currency(food)])
+            breakdown_data.append([f'    ({format_currency(food / 12)}/month × 12 months)', ''])
+        if one_time > 0:
+            breakdown_data.append(['  One-Time Items (Crib, Stroller, etc.)', format_currency(one_time)])
+        if miscellaneous > 0:
+            breakdown_data.append(['  Miscellaneous (Toys, Books, etc.)', format_currency(miscellaneous)])
+            breakdown_data.append([f'    ({format_currency(miscellaneous / 12)}/month × 12 months)', ''])
+        breakdown_data.append(['Childcare Subtotal', format_currency(childcare_expenses)])
+        breakdown_data.append(['', ''])
+        
+        # Totals section
+        breakdown_data.append(['TOTAL EXPENSES', format_currency(total_expenses)])
+        breakdown_data.append(['  Monthly Average', format_currency(total_expenses / 12)])
+        breakdown_data.append(['', ''])
+        breakdown_data.append(['NET CASHFLOW', format_currency(net_cashflow)])
+        breakdown_data.append(['  Monthly Average', format_currency(net_cashflow / 12)])
+        breakdown_data.append(['  Savings Rate', f"{((net_cashflow / total_income) * 100):.1f}%"])
+        breakdown_data.append(['', ''])
+        breakdown_data.append(['ENDING SAVINGS', format_currency(ending_savings)])
+        
+        # Create table
+        breakdown_table = Table(breakdown_data, colWidths=[4.5 * inch, 2 * inch])
+        breakdown_table.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+            ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
+            ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+            ('FONTSIZE', (0, 0), (-1, -1), 9),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+            ('TOPPADDING', (0, 0), (-1, -1), 4),
             
-            # Data rows
-            ('BACKGROUND', (0, 1), (-1, -2), colors.white),
-            ('ALIGN', (0, 1), (0, -1), 'LEFT'),
-            ('ALIGN', (1, 1), (-1, -1), 'RIGHT'),
-            ('FONTNAME', (0, 1), (-1, -2), 'Helvetica'),
-            ('FONTSIZE', (0, 1), (-1, -2), 8),
-            ('BOTTOMPADDING', (0, 1), (-1, -2), 5),
-            ('TOPPADDING', (0, 1), (-1, -2), 5),
+            # Bold section headers
+            ('FONTNAME', (0, 0), (0, 0), 'Helvetica-Bold'),  # INCOME BREAKDOWN
+            ('FONTNAME', (0, 3), (0, 3), 'Helvetica-Bold'),  # Total Income
+            ('FONTNAME', (0, 5), (0, 5), 'Helvetica-Bold'),  # HOUSEHOLD EXPENSES
+            ('FONTNAME', (0, 11), (0, 11), 'Helvetica-Bold'),  # CHILDCARE EXPENSES
             
-            # Total row
-            ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor('#e5e7eb')),
-            ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, -1), (-1, -1), 9),
-            ('BOTTOMPADDING', (0, -1), (-1, -1), 8),
-            ('TOPPADDING', (0, -1), (-1, -1), 8),
+            # Bold totals
+            ('FONTNAME', (0, -8), (-1, -8), 'Helvetica-Bold'),  # TOTAL EXPENSES
+            ('FONTNAME', (0, -5), (-1, -5), 'Helvetica-Bold'),  # NET CASHFLOW
+            ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),  # ENDING SAVINGS
             
-            # Grid
-            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+            # Background for main sections
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#e5e7eb')),
+            ('BACKGROUND', (0, 3), (-1, 3), colors.HexColor('#f3f4f6')),
+            ('BACKGROUND', (0, 5), (-1, 5), colors.HexColor('#e5e7eb')),
+            ('BACKGROUND', (0, 11), (-1, 11), colors.HexColor('#e5e7eb')),
+            ('BACKGROUND', (0, -8), (-1, -8), colors.HexColor('#dbeafe')),
+            ('BACKGROUND', (0, -5), (-1, -5), colors.HexColor('#dcfce7')),
+            ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor('#e0e7ff')),
+            
+            # Indentation for sub-items (smaller font)
+            ('FONTSIZE', (0, 2), (0, 2), 8),  # Monthly calculations
+            ('FONTSIZE', (0, 7), (0, 9), 8),  # Household monthly calcs
+            ('TEXTCOLOR', (0, 2), (0, 2), colors.grey),
+            ('TEXTCOLOR', (0, 7), (0, 9), colors.grey),
+            
+            # Grid lines
+            ('LINEABOVE', (0, 3), (-1, 3), 1, colors.grey),
+            ('LINEABOVE', (0, -8), (-1, -8), 1.5, colors.grey),
+            ('LINEABOVE', (0, -5), (-1, -5), 1, colors.grey),
             ('LINEABOVE', (0, -1), (-1, -1), 1, colors.grey),
         ]))
         
-        elements.append(monthly_table)
-        elements.append(Spacer(1, 0.2 * inch))
+        elements.append(breakdown_table)
+        elements.append(Spacer(1, 0.3 * inch))
+        
+        # Add page break after each year except the last
+        if year_num < len(yearly_projections):
+            elements.append(PageBreak())
     
     # Page break before assumptions
     elements.append(PageBreak())

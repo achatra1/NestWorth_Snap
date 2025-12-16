@@ -88,6 +88,7 @@ async def calculate_projection(
         'zip_code': profile.zip_code,
         'due_date': profile.due_date.isoformat(),
         'current_savings': profile.current_savings,
+        'number_of_children': profile.number_of_children,
         'childcare_preference': profile.childcare_preference,
         'partner1_leave': {
             'duration_weeks': profile.partner1_leave.duration_weeks,
@@ -98,6 +99,7 @@ async def calculate_projection(
             'percent_paid': profile.partner2_leave.percent_paid,
         },
         'monthly_housing_cost': profile.monthly_housing_cost,
+        'monthly_credit_card_expenses': profile.monthly_credit_card_expenses,
     }
     
     # Calculate projection

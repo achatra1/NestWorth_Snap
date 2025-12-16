@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Download, Edit, AlertTriangle, Info, AlertCircle, Baby, TrendingUp, DollarSign, ChevronDown, ChevronRight, Home, Crown } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import FinancialCharts from '@/components/FinancialCharts';
 
 export default function Results() {
   const navigate = useNavigate();
@@ -430,7 +431,7 @@ export default function Results() {
                     const incomeBreakdown = getYearIncomeBreakdown(year.year);
                     
                     // Calculate expense categories
-                    const householdExpenses = year.expenseBreakdown.housing;
+                    const householdExpenses = year.expenseBreakdown.housing + year.expenseBreakdown.creditCard;
                     const childcareExpenses =
                       year.expenseBreakdown.childcare +
                       year.expenseBreakdown.diapers +
@@ -519,14 +520,24 @@ export default function Results() {
                                         <span className="font-semibold text-gray-900">{formatCurrency(householdExpenses)}</span>
                                       </div>
                                       <div className="pl-6 space-y-1">
-                                        <div className="flex justify-between items-center text-sm">
-                                          <span className="text-gray-600">Housing (Rent/Mortgage)</span>
-                                          <span className="text-gray-700">{formatCurrency(year.expenseBreakdown.housing)}</span>
+                                        <div className="space-y-0.5">
+                                          <div className="flex justify-between items-center text-sm">
+                                            <span className="text-gray-600">Housing (Rent/Mortgage)</span>
+                                            <span className="text-gray-700">{formatCurrency(year.expenseBreakdown.housing)}</span>
+                                          </div>
+                                          <div className="flex justify-between items-center text-xs text-gray-500 pl-4">
+                                            <span>{formatCurrency(year.expenseBreakdown.housing / 12)}/month × 12 months</span>
+                                          </div>
                                         </div>
                                         {year.expenseBreakdown.creditCard > 0 && (
-                                          <div className="flex justify-between items-center text-sm">
-                                            <span className="text-gray-600">Credit Card Payments</span>
-                                            <span className="text-gray-700">{formatCurrency(year.expenseBreakdown.creditCard)}</span>
+                                          <div className="space-y-0.5">
+                                            <div className="flex justify-between items-center text-sm">
+                                              <span className="text-gray-600">Credit Card Payments</span>
+                                              <span className="text-gray-700">{formatCurrency(year.expenseBreakdown.creditCard)}</span>
+                                            </div>
+                                            <div className="flex justify-between items-center text-xs text-gray-500 pl-4">
+                                              <span>{formatCurrency(year.expenseBreakdown.creditCard / 12)}/month × 12 months</span>
+                                            </div>
                                           </div>
                                         )}
                                       </div>
@@ -549,7 +560,12 @@ export default function Results() {
                                               <span className="text-gray-700">{formatCurrency(year.expenseBreakdown.childcare)}</span>
                                             </div>
                                             <div className="flex justify-between items-center text-xs text-gray-500 pl-4">
-                                              <span>{formatCurrency(year.expenseBreakdown.childcare / 12)}/month × 12 months</span>
+                                              <span>
+                                                {year.year === 1
+                                                  ? `${formatCurrency(year.expenseBreakdown.childcare / 6)}/month × 6 months (starts month 6)`
+                                                  : `${formatCurrency(year.expenseBreakdown.childcare / 12)}/month × 12 months`
+                                                }
+                                              </span>
                                             </div>
                                           </div>
                                         )}

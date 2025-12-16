@@ -57,6 +57,11 @@ def build_summary_prompt(projection: dict[str, Any]) -> str:
     baby_cost_percent = (total_baby_costs / total_income) * 100
     ending_savings = yearly[4]["endingSavings"]
     
+    # Calculate three months of living expenses (Year 2 Month 1: housing + childcare)
+    year2_month1_housing = yearly[1]["expenseBreakdown"]["housing"] / 12
+    year2_month1_childcare = yearly[1]["expenseBreakdown"]["childcare"] / 12
+    three_months_living_expenses = (year2_month1_housing + year2_month1_childcare) * 3
+    
     prompt = f"""You are a financial advisor creating an empathetic, structured 5-year baby budget summary.
 
 **CRITICAL INSTRUCTION**: You MUST use ONLY the calculated numbers provided below. DO NOT invent, estimate, or calculate any new numbers. Use the exact values given.
@@ -78,6 +83,8 @@ def build_summary_prompt(projection: dict[str, Any]) -> str:
 - Starting Savings: ${profile["currentSavings"]:,.0f}
 - Ending Savings (Year 5): ${ending_savings:,.0f}
 - Net Savings Change: ${ending_savings - profile["currentSavings"]:,.0f}
+- **Three Months of Living Expenses**: ${three_months_living_expenses:,.0f}
+  (Calculated as Year 2 Month 1 expenses: housing ${year2_month1_housing:,.0f} + childcare ${year2_month1_childcare:,.0f}, multiplied by 3)
 
 ### Year-by-Year Breakdown (USE THESE EXACT NUMBERS):
 """
@@ -150,6 +157,13 @@ Create a concise, empowering markdown summary with these sections ONLY:
 - Present these as unified "childcare and baby care costs" rather than separating them
 - This provides a complete picture of the financial impact of having a baby
 - Note: Healthcare and clothing costs are not included in these projections
+
+**IMPORTANT: When discussing emergency funds and savings recommendations:**
+- The recommended emergency fund is **Three Months of Living Expenses** = ${three_months_living_expenses:,.0f}
+- This is calculated as Year 2 Month 1 expenses (housing + childcare) × 3
+- Year 2 Month 1 represents a stabilized expense period when childcare has started
+- Use this specific amount when discussing savings buffers, emergency funds, or financial preparedness
+- Compare the user's current and projected savings against this benchmark
 
 **Tone Guidelines:**
 - **MANDATORY: Start with a congratulatory message celebrating this exciting journey**

@@ -27,15 +27,45 @@ This is an **unmaintained prototype repo** (last commit 2026-01-02, originally b
 
 ### Documentation drift
 - `frontend/README.md` claims auth and data persistence are "frontend-only using localStorage" — **this is stale**. The app has a real FastAPI + MongoDB backend with JWT auth. Don't trust that section.
-- Root-level `test_*.py` files (11 of them) are manual integration scripts that hit a live server at `localhost:8000`, not a real pytest suite. No pytest config exists.
+- Root-level `test_*.py` files (16 of them) are manual integration scripts that hit a live server at `localhost:8000`, not a real pytest suite. No pytest config exists. See [Documentation & file inventory](#documentation--file-inventory).
 
 ### Other
 - `delete_all_users.py` at repo root is a destructive script with no guardrails — know it's there before running arbitrary root-level scripts.
 - **App fails to start if `OPENAI_API_KEY` is empty/unset.** `backend/integrations/openai_client.py` constructs `AsyncOpenAI(api_key=settings.OPENAI_API_KEY)` at **module import time**. With `openai==2.44.0` (pinned above), the client constructor raises `OpenAIError: Missing credentials` immediately if the key is empty — which crashes the whole FastAPI app on startup, not just AI-summary requests. `backend/config.py` defaults `OPENAI_API_KEY` to `""`, implying it was meant to be optional, but in practice it's a hard requirement even to boot the server. Found while smoke-testing the pinned dependency versions: import succeeded with a dummy key (`sk-test-dummy`) and failed with an empty one. Not fixed yet — options are (a) make `OPENAI_API_KEY` a required setting and fail fast with a clear error, or (b) lazily construct the OpenAI client inside the request path so the rest of the app still boots without it.
 
-## Before deploying anywhere beyond local dev
+## Deployment plan
+
+**Decision (2026-07-03): Vercel (frontend) + Railway (backend) + MongoDB Atlas (DB), all on free/hobby tiers.** No Docker needed — Railway auto-detects the FastAPI app from `backend/requirements.txt`; Vercel already has `frontend/vercel.json` for the SPA rewrite.
 
 1. ~~Remove or lock down `reset-password-direct`~~ — done, see above.
 2. ~~Unify frontend API base URL handling to always use `VITE_API_BASE_URL`~~ — done, see above.
 3. ~~Pin `backend/requirements.txt` versions~~ — done, see above.
-4. Confirm `APP_ENV` is not `development` in the deployed environment.
+4. Confirm `APP_ENV` is not `development` in the deployed environment (Railway env vars).
+5. Not yet done — Railway backend deploy: set `MONGODB_URI` (Atlas), `JWT_SECRET`, `CORS_ORIGINS` (the Vercel frontend URL), `OPENAI_API_KEY` (real key — required to boot, see the startup-crash bug above), `APP_ENV=production`, `PORT` (Railway sets this automatically; confirm `backend/main.py`/uvicorn honors `$PORT`).
+6. Not yet done — Vercel frontend deploy: set `VITE_API_BASE_URL` to the Railway backend URL.
+7. Not yet done — MongoDB Atlas: confirm network access allows Railway's egress (Atlas free tier defaults to IP allowlist; either allowlist `0.0.0.0/0` or Railway's static IP if on a plan that provides one).
+8. Not yet done — smoke-test signup/login/projection/PDF export end-to-end against the deployed stack once all three are live.
+
+## Documentation & file inventory
+
+Living audit of every doc/script/data file in the repo — not code. Goal: `CLAUDE.md` is the source of truth; everything else either has a clear ongoing purpose (keep), overlaps with something else (consolidate), or is dead weight from the original AI-assisted build (remove). Update this table as files are added, merged, or deleted — don't let it drift the way the READMEs did.
+
+| File | Purpose | Verdict |
+|---|---|---|
+| `CLAUDE.md` | Source of truth for repo status, known issues, deployment plan, this inventory. | **Keep** — authoritative. |
+| `frontend/README.md` | Frontend setup/usage doc. | **Keep, but fix** — "frontend-only localStorage" section is stale (see Documentation drift above); needs a rewrite to reflect the real backend. |
+| `Backend-dev-plan.md` (723 lines) | Original pre-build plan for the FastAPI backend (executive summary, why, scope). Historical design rationale, written before the backend existed. | **Consolidate then remove** — anything still true belongs in `CLAUDE.md`'s Stack section; the plan-vs-actual gap isn't worth maintaining as a second document. Not yet actioned. |
+| `BROWSER_REFRESH_INSTRUCTIONS.md` (24 lines) | One-off note: "the profile save fix has been applied, hard-refresh your browser." Describes a bug that's already fixed. | **Remove** — no ongoing value, purely a stale support note. Not yet actioned. |
+| `PROFILE_PREPOPULATION_IMPLEMENTATION.md` (115 lines) | Changelog-style writeup of one feature's implementation (files touched, what changed). | **Remove** — this is what commit messages and `git log`/`git blame` are for; it will only get staler as the code around it changes. Not yet actioned. |
+| `PRD` (root, no extension, 255 lines, plaintext) | Product requirements — problem statement, goals, personas, MVP scope, market analysis. | **Consolidate** — overlaps heavily with `frontend/PRD.md` and `NestWorth PRD v1.docx`. Pick one canonical PRD location and remove the rest. Not yet actioned; need your call on which is canonical (see question below). |
+| `NestWorth PRD v1.docx` (1.8 MB binary) | Presumably the original stakeholder-authored PRD ("Downloadable PRD Reference" commit). | **Decide** — binary files don't diff/review well in git. If this is the canonical source, consider keeping it out of git (Drive/Docs link in `CLAUDE.md` instead) and treating the in-repo `.md` PRDs as generated copies, or vice versa. Not yet actioned. |
+| `frontend/PRD.md` (347 lines) | "Deep Mode PRD Generation" output from the AI app-builder tool (dyad) that originally scaffolded this app. | **Consolidate** — candidate for *the* canonical PRD if it's the most complete/current one; otherwise remove per above. |
+| `frontend/PRD-Template.md` (229 lines) | Blank template with `[placeholder]` text, generated by the same tool. Not filled in. | **Remove** — dead template, not a real doc. |
+| `frontend/.prd-metadata.json` | Metadata pointing at `PRD.md`/`PRD-Template.md`, used by the dyad tool. | **Keep only if still using dyad**; otherwise remove alongside the PRD template. |
+| `frontend/AI_RULES.md` (19 lines) | Tech-stack constraints for the dyad AI app-builder (React Router in `App.tsx`, shadcn/ui, Tailwind, etc.). | **Keep only if still using dyad** to make edits; the durable parts (tech stack) are now also captured in `CLAUDE.md`. Otherwise remove. |
+| Root `test_*.py` (16 files) | Manual integration scripts that `curl`/`urlopen` a live `localhost:8000` server (auth, profile, projections, password reset, onboarding flows). Not a pytest suite — no fixtures, no config, run ad hoc. | **Consolidate** — move into `backend/tests/` and convert to real `pytest` tests (or at minimum a `scripts/manual/` folder) so they stop cluttering repo root and start running in CI once CI exists. Not yet actioned. |
+| `test_browser_results.html` | Looks like a generated output artifact from a test run, not source. | **Remove** — regenerable output shouldn't be committed; add pattern to `.gitignore` if these scripts are kept. |
+| `delete_all_users.py` | Destructive admin script, no confirmation prompt, sits at repo root next to everything else. | **Move + guard** — relocate to `backend/scripts/` and add a confirmation prompt / require an explicit `--yes` flag before it runs. Not yet actioned; flagged as a risk in Known issues above. |
+| `Example.xlsx`, `One Time costs.xlsx`, `Recurring costs.xlsx`, `Ref Data Childcare cost byZip.xlsx` | Source spreadsheets for the reference cost data compiled into `frontend/src/data/*.ts` (per `frontend/README.md`). | **Keep** — legitimate data provenance; low priority to reorganize into a `data/` or `reference/` subfolder for tidiness. |
+
+**Open question for you:** which of `PRD` (root), `frontend/PRD.md`, and `NestWorth PRD v1.docx` should be canonical? I haven't deleted/merged any of the above yet — this table is the tracking list, not a completed cleanup. Say the word on any row and I'll execute it.

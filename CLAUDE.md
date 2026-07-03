@@ -20,8 +20,7 @@ This is an **unmaintained prototype repo** (last commit 2026-01-02, originally b
 - No rate limiting on login/signup/reset endpoints.
 
 ### Config / deployment drift
-- Most frontend API calls hardcode `http://localhost:8000` (`frontend/src/contexts/AuthContext.tsx:16`, `frontend/src/pages/Results.tsx:40,59,85,128`). Only `ForgotPassword.tsx` and `ResetPassword.tsx` read `VITE_API_BASE_URL`. Deploying as-is will leave most of the app calling localhost. Needs unifying onto one env-driven base URL before deploy.
-- No `frontend/.env.example` documenting `VITE_API_BASE_URL`.
+- ~~Most frontend API calls hardcode `http://localhost:8000`~~ — **FIXED**. Added `frontend/src/lib/api.ts` exporting `API_BASE_URL` (from `VITE_API_BASE_URL`, falling back to `http://localhost:8000`) and `API_V1_URL` (`${API_BASE_URL}/api/v1`). All fetch call sites (`AuthContext.tsx`, `ForgotPassword.tsx`, `ResetPassword.tsx`, `Results.tsx`) now import from this single module instead of defining their own base URL or hardcoding one. Added `frontend/.env.example` documenting `VITE_API_BASE_URL`.
 - `backend/requirements.txt` has **no pinned versions** — fresh installs can silently pull breaking major versions (FastAPI/pydantic/motor).
 - No Dockerfile / docker-compose / CI config. Frontend and backend are run as two separate manual processes.
 - `frontend/vercel.json` exists (SPA rewrite rule) suggesting Vercel was the intended frontend host, but there's no equivalent backend deploy config.
@@ -36,6 +35,6 @@ This is an **unmaintained prototype repo** (last commit 2026-01-02, originally b
 ## Before deploying anywhere beyond local dev
 
 1. ~~Remove or lock down `reset-password-direct`~~ — done, see above.
-2. Unify frontend API base URL handling to always use `VITE_API_BASE_URL` (no hardcoded localhost).
+2. ~~Unify frontend API base URL handling to always use `VITE_API_BASE_URL`~~ — done, see above.
 3. Pin `backend/requirements.txt` versions.
 4. Confirm `APP_ENV` is not `development` in the deployed environment.

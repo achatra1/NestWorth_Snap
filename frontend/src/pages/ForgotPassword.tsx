@@ -7,8 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Baby, ArrowLeft } from 'lucide-react';
 import PremiumHeader from '@/components/PremiumHeader';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+import { API_V1_URL } from '@/lib/api';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
@@ -28,7 +27,7 @@ export default function ForgotPassword() {
     setLoading(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/auth/forgot-password`, {
+      const response = await fetch(`${API_V1_URL}/auth/forgot-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

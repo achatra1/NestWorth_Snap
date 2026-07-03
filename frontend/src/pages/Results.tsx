@@ -12,6 +12,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Download, Edit, AlertTriangle, Info, AlertCircle, Baby, TrendingUp, DollarSign, ChevronDown, ChevronRight, Home, Crown } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import FinancialCharts from '@/components/FinancialCharts';
+import { API_V1_URL } from '@/lib/api';
 
 export default function Results() {
   const navigate = useNavigate();
@@ -37,7 +38,7 @@ export default function Results() {
         
         // Call backend API to calculate projection
         const token = localStorage.getItem('nestworth_token');
-        const response = await fetch('http://localhost:8000/api/v1/projections/calculate', {
+        const response = await fetch(`${API_V1_URL}/projections/calculate`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -56,7 +57,7 @@ export default function Results() {
         // Generate AI summary from backend
         setSummaryLoading(true);
         try {
-          const summaryResponse = await fetch('http://localhost:8000/api/v1/summaries/generate', {
+          const summaryResponse = await fetch(`${API_V1_URL}/summaries/generate`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -82,7 +83,7 @@ export default function Results() {
         // Generate AI assumptions summary from backend
         setAssumptionsLoading(true);
         try {
-          const assumptionsResponse = await fetch('http://localhost:8000/api/v1/summaries/generate-assumptions', {
+          const assumptionsResponse = await fetch(`${API_V1_URL}/summaries/generate-assumptions`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -125,7 +126,7 @@ export default function Results() {
       setPdfLoading(true);
       const token = localStorage.getItem('nestworth_token');
       
-      const response = await fetch('http://localhost:8000/api/v1/exports/pdf', {
+      const response = await fetch(`${API_V1_URL}/exports/pdf`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

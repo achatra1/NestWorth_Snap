@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, UserFinancialProfile } from '@/types/financial';
+import { API_V1_URL } from '@/lib/api';
 
 interface AuthContextType {
   user: User | null;
@@ -12,8 +13,6 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-const API_BASE_URL = 'http://localhost:8000/api/v1';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -28,7 +27,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (token) {
         try {
           // Verify token and get user info
-          const response = await fetch(`${API_BASE_URL}/auth/me`, {
+          const response = await fetch(`${API_V1_URL}/auth/me`, {
             headers: {
               'Authorization': `Bearer ${token}`,
             },
@@ -45,7 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             // Fetch user's profile if they have one
             try {
-              const profileResponse = await fetch(`${API_BASE_URL}/profiles/me`, {
+              const profileResponse = await fetch(`${API_V1_URL}/profiles/me`, {
                 headers: {
                   'Authorization': `Bearer ${token}`,
                 },
@@ -77,7 +76,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const register = async (email: string, name: string, password: string): Promise<boolean> => {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/signup`, {
+      const response = await fetch(`${API_V1_URL}/auth/signup`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -113,7 +112,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+      const response = await fetch(`${API_V1_URL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -140,7 +139,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // Fetch user's profile if they have one
       try {
-        const profileResponse = await fetch(`${API_BASE_URL}/profiles/me`, {
+        const profileResponse = await fetch(`${API_V1_URL}/profiles/me`, {
           headers: {
             'Authorization': `Bearer ${data.token}`,
           },
@@ -168,7 +167,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       if (token) {
         // Call logout endpoint
-        await fetch(`${API_BASE_URL}/auth/logout`, {
+        await fetch(`${API_V1_URL}/auth/logout`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -197,7 +196,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       console.log('Sending profile data:', JSON.stringify(newProfile, null, 2));
 
-      const response = await fetch(`${API_BASE_URL}/profiles`, {
+      const response = await fetch(`${API_V1_URL}/profiles`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

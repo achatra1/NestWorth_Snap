@@ -7,8 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ArrowLeft } from 'lucide-react';
 import PremiumHeader from '@/components/PremiumHeader';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+import { API_V1_URL } from '@/lib/api';
 
 export default function ResetPassword() {
   const navigate = useNavigate();
@@ -43,7 +42,7 @@ export default function ResetPassword() {
     setLoading(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/auth/reset-password`, {
+      const response = await fetch(`${API_V1_URL}/auth/reset-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -1,0 +1,64 @@
+{
+    "familyPlanning": {
+      "numberOfChildren": 0,
+      "child": {
+        "dueDate": "",
+        "birthDate": ""
+      }
+    },
+    "householdIncome": {
+      "partner1": {
+        "annualIncome": 0,
+        "employerName": ""
+      },
+      "partner2": {
+        "annualIncome": 0,
+        "employerName": ""
+      }
+    },
+    "location": {
+      "zipCode": ""
+    },
+    "financials": {
+      "existingSavings": 0,
+      "expectedBigPurchases": [
+        {
+          "item": "",
+          "estimatedCost": 0,
+          "timeline": ""
+        }
+      ]
+    },
+    "taxAndDeductions": {
+      "childcareDeductions": true,
+      "notes": ""
+    },
+    "healthcarePlans": {
+      "partner1": {
+        "planName": "",
+        "details": ""
+      },
+      "partner2": {
+        "planName": "",
+        "details": ""
+      }
+    },
+    "parentalLeave": {
+      "partner1": {
+        "leaveWeeks": 0,
+        "paid": true
+      },
+      "partner2": {
+        "leaveWeeks": 0,
+        "paid": true
+      }
+    },
+    "childcarePreference": {
+      "type": "daycare", 
+      "options": {
+        "atHomeCare": false,
+        "daycare": true,
+        "stayAtHome": false
+      }
+    }
+  }

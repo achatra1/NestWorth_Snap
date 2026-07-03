@@ -1,0 +1,400 @@
+# NestWorth – More freedom for the moments that matter
+
+*Converted from `NestWorth PRD v1.docx` (the canonical source) on 2026-07-03. This is the canonical PRD for the repo — see `CLAUDE.md`'s Documentation & file inventory. Two embedded images (UI Mock, Appendix diagrams) were not carried over by the conversion; see the original .docx for those.*
+
+Description: An AI-powered financial planner that helps new parents forecast, manage, and optimize household finances through the first five years of parenthood through a BABY BUDGET BLUEPRINT
+
+By: Ankita Chatrath @KindCue (copyrighted content not to be used without permission)
+
+## Problem Statement
+
+New baby planning is a high-stress, high-spend, information-scarce life event for many families. In the first year of a child’s life alone, parents can face $20,000–$30,000 of new expenses on average, from medical bills and baby gear to childcare and lost income during parental leave. This period brings high emotional stakes and financial anxiety – decisions around budgeting, childcare, and career trade-offs carry long-term impacts on the household. Yet guidance today is fragmented across blogs, forums, and generic budgeting tools, leaving new parents overwhelmed and unsure if they’re financially prepared.
+
+## Hypothesis
+
+If we give expecting parents a personalized, AI-generated 5-year financial plan ("Baby Budget Blueprint") based on their household data, baby timeline, and lifestyle choices, they will feel more confident and prepared — reducing financial stress and improving outcomes.
+
+## Goals
+
+Help users generate a personalized and accurate financial forecast for their baby’s first 0–5 years within 5 minutes. Secondary Goal is to: Validate willingness to pay for a specialized AI-driven financial advisor.
+
+## Target Users & Persona
+
+Our primary users are first-time parents (both expecting and with a newborn) who are proactive about finances but lack expert guidance. They are typically couples in their late 20s to 40s, tech-savvy and accustomed to using apps for personal finance.
+
+A persona example is “Jennifer,” a 32-year-old professional expecting her first baby. Jennifer and her partner worry about affording quality childcare, managing on one income during maternity leave, and budgeting for baby essentials. They currently try to piece together advice from parenting blogs and spreadsheets, but this is time-consuming and leaves them uncertain.
+
+## Problem Statement
+
+Hypothesis (Problem → Solution → Impact): New parents lack a consolidated, personalized way to financially plan for a new baby, leading to stress, overspending, or missed savings opportunities. If we provide an AI-driven “Baby Budget Planner” that automates expense projection, scenario analysis, and guidance for the child’s early years, then parents will feel more confident and financially prepared, ultimately reducing stress and saving money
+
+Mission: We make it effortless for expecting and new parents to create and execute a financial plan for their child’s first five years, so that they can focus on their family instead of worrying about money. The product’s goal is to transform a chaotic, high-stakes planning process into a guided experience that feels like having a personal financial advisor (and supportive coach) dedicated to your growing family. Success means parents can say: “With this tool, we navigated our baby’s first years without financial panic, and even saved for the future.”
+
+## Feature Description
+
+An interactive questionnaire + AI planner that outputs a multi-year forecasted budget with breakdowns for:
+
+- One-time costs: crib, car seat, stroller, etc.
+
+- Recurring monthly costs: diapers, food, childcare
+
+- Parental leave loss: inbuilt income gap simulator
+
+- Tax/benefit optimization: child tax credit, FSA
+
+- Cash flow planning: highlight future shortfalls
+
+- Downloadable PDF or dashboard report
+
+**Why AI**
+
+The complexity and personalization needed for baby planning make it ideal for an AI agent. Every family’s situation is different – an AI can ingest a user’s specific financial data and preferences, then retrieve relevant cost data and regulations (e.g. parental leave policies, tax credits) to generate a tailored plan. Unlike static tools, an AI agent can answer follow-up questions, update the plan as circumstances change, and provide empathetic explanations 24/7. This “digital financial planner” is more accessible and affordable than hiring a human financial advisor (who might charge hundreds per session) and more specialized to this life event than generic budget apps. The user persona is thus an overwhelmed but motivated new parent who will readily adopt a trustworthy, all-in-one planning assistant that speaks to their needs.
+
+## MVP Scope
+
+Must-Have (MVP):
+
+- Interactive onboarding (10 questions max)
+
+- Baby Budget Blueprint PDF
+
+- 5-year forecast engine (with key milestones)
+
+- Empathetic natural language summary (“Here’s what to expect”)
+
+- Cost estimates based on location and lifestyle; recommendations to lower cost if needed, validation and assurance if numbers look good
+
+Nice-to-Have (Later):
+
+- Scenario modeling UI
+
+- TAX and Healthcare planner
+
+- In-app budgeting dashboard
+
+- Partner or spouse shared account
+
+**Metrics for Success**
+
+**North Star Metric**
+
+- Monthly Active Paid Users (MAPU) who generate ≥1 plan
+- Target: 500 MAPU within 3 months of beta launch
+
+**Supporting Metrics**
+
+| Metric | Target |
+| --- | --- |
+| Time to Plan Completion | <6 minutes |
+| Net Promoter Score (NPS) | >40 |
+| Willingness to Pay (WTP) | $50+ for PDF |
+
+## Monetization Potential
+
+Life-event financial planning for a new baby is a moment with proven willingness to pay. Many expectant parents already shell out for classes, books, or financial advice because they want to “get it right.” In personal finance, subscription models are accepted – for instance, Monarch Money charges $14.99/month for its premium planning app and that’s a general tool, not life-event-specific). Our product can command a similar or higher price due to its specialized value. Possible revenue streams include:
+
+- Premium Subscription: $10–$20 per month for full access to the planning agent (continuous updates to the blueprint based on changing financial situation, scenario analysis and tax/healthcare planner, new life events (baby 2, pet/new home addition). This yields recurring revenue. We can offer a free tier or trial that provides a basic plan to hook users, then upsell advanced features via subscription.
+
+- One-Time “Baby Budget Blueprint” Package: A one-time purchase $59 for those who want a comprehensive plan delivered without ongoing engagement. This will include a personalized report, detailed and editable for users to maintain on their own. It’s like buying an advisory session and a guide for future use. This caters to users not ready for a subscription and provides a quick revenue pop.
+
+Given the high-spend nature of this use case (first-year baby costs rival a down payment on a house), capturing even a fraction of the value through a subscription or one-time fee is feasible. Users are likely to perceive $59 or a $10-15 monthly subscription as worthwhile if it helps bring mental peace and confidence. The monetization model would target B2C direct sales.
+
+## MARKET ANALYSIS
+
+Current alternatives only partially address this user need, underscoring the gap our agent fills:
+
+| Product | Feature Depth | Personalization | Scenario Analysis | Price | Link |
+| --- | --- | --- | --- | --- | --- |
+| NestWorth | ✅ Full (0–5 yrs) | ✅ Household-specific | ✅ Interactive | $59+ | – |
+| Mint | ❌ Shallow | ❌ None | ❌ None | Free | mint.intuit.com |
+| Monarch Money | ⚠️ Moderate | ⚠️ General | ⚠️ Limited | $14.99/mo | monarchmoney.com |
+| BabyCenter Calculator | ❌ Static List | ❌ None | ❌ None | Free | babycenter.com |
+| Financial Advisors | ✅ High | ✅ Custom | ✅ Yes (manual) | $200+/hr | asset-map.com |
+
+No direct competitor offers scenario-based, AI-personalized multi-year planning for new parents.
+
+## Product Flow Breakdown
+
+INPUTS:
+
+Baby Budget Blueprint (Automated Plan Generation): Upon signup, users answer a questionnaire about their family situation:
+
+- How many children are you planning for
+
+- Due date/Child’s birth date
+
+- Household income
+
+- Partner 1
+
+- Partner 2
+
+- Location (Zip code)
+
+- Existing savings
+
+- tax and childcare deductions
+
+- Employer name 1
+
+- Employer name 2
+
+Attach healthcare plans offered by employer
+
+- Parental leave 1
+
+- Parental leave 2
+
+- Childcare Preference
+
+- At home care
+
+- Daycare
+
+- Stay at home
+
+- Any big purchases expected
+
+OUTPUT:
+
+The agent produces a detailed first-5-years financial plan. Report will include:
+
+- A breakdown of one time costs at baby arrival
+
+- A year-by-year projection up to age 5 (accounting for milestones like starting daycare or preschool), and a summary of net impact on the household budget each year. The plan highlights any shortfall or surplus, so the family can prepare (e.g. “By year 3, daycare costs peak – you’ll want to save $X beforehand”)
+
+FUTURE FEATURE 1: Tax Optimization and Advice: In the premium paid feature, Users can supply additional information and prompt about relevant tax benefits or financial products based on employer details and state and fedral tax benifits. It would highlight:
+
+A.  State Child Tax Credit
+
+B. Suggest Dependent Care FSA to pay daycare with pre-tax dollars
+
+C. Recommend life insurance
+
+D. Compare Healthcare options based on employer provided plans and provide a well rounded recommendation
+
+E. Medical Out-of-Pocket Max Scenario Modelling
+
+FUTURE FEATURE 2: Scenario Modeling & Comparison (paid feature) : In the premium paid feature, Users can explore following “what-if” scenarios that uses Monte Carlo lite or simple banding to suggest low, medium and high-cost scenarios. The agent will be trained to handle focused scenarios like:
+
+- How much do I need to save upfront if I take x months off instead of y?
+
+- How would hiring a nanny vs. using daycare change our finances?”
+
+- What if we change our location from one zip code to other
+
+- What if partner x wants to stay at home to care for child
+
+- How should we budget for x months of maternity leave at y% pay?”
+
+The system will adjust the projections and show side-by-side comparisons of scenarios. This feature is crucial because many new-parent decisions have financial trade-offs.
+
+## Timeline
+
+MVP Development (Months 0–3): Research & Onboarding UX, LLM Prompt Dev + Cost DB, Budget Engine Prototype, PDF Generator UI. See Tech Stack and PRODUCT SPECS for details
+
+User Feedback & Iteration (Months 3-4): After initial users generate a plan, we’ll gather feedback: Did the plan meet their needs? What questions did they have afterward? How accurate or helpful were the projections? This will guide improvements. We anticipate refining the personalization (e.g. adding more granular inputs if needed, such as distinguishing between formula feeding vs breastfeeding costs, etc.) and improving the explanation aspect (the AI should clearly justify assumptions in the plan). Early feedback ensures we solve real pain points.
+
+Beta Launch (Month 5): By now, the product should handle end-to-end use cases for baby planning. We can do a broader beta launch targeting parenting communities or through partnerships (for instance, a parenting blog or hospital prenatal class could offer access to our tool). The beta will be used to measure key metrics like engagement (do users come back to adjust scenarios or ask questions?), conversion (if we have pricing in place, who is willing to pay and for what), and satisfaction (surveys or NPS). We’ll also watch for any AI accuracy issues (e.g. misestimating a cost category) to fix promptly – accuracy and trust are paramount for financial advice tools.
+
+Monetization Rollout (Months 6-9): Based on beta usage patterns, finalize the pricing strategy. For example, if we see users continuing to use the tool beyond the initial plan, a subscription makes sense. We might introduce a freemium model: free basic plan for the first year’s budget, and premium tier for multi-year planning + scenario analysis + live chat support. Or offer the one-time purchase option as a test. By month 9, aim to start generating revenue, even if modest, to validate willingness to pay. Concurrently, we will begin outreach for B2B partnerships – for instance, approach an HR department at a progressive company to pilot offering the tool to employees who go on parental leave, or an insurance company to co-market it to new parents (with a referral arrangement).
+
+Feature Expansion (Months 9-12):
+
+- Interactive What if Scenario analysis
+
+- Tax and Healthcare planning
+
+- Scale & New Life Events (Year 2+)
+
+Throughout these phases, we will prioritize with a RICE (Reach, Impact, Confidence, Effort) model to ensure we tackle the highest-impact features first. For example, the Blueprint generation has very high impact and reach (every user needs it) and is feasible to implement (using known data) – so it’s first. The what if feature is high impact for retention but longer lead time from effort and confidence building stand point. Using such
+
+## PRODUCT SPECIFICATIONS
+
+Building this 0→1 product will involve rapid prototyping with real users and a phased feature rollout. Key steps/milestones:
+
+Focus on the core planning engine and report generation. In this phase, we’ll develop the Baby Budget Blueprint generator as a standalone outcome. Refer the appendix for a diagrammatic sequence diagram, ERD, Training Datasets and Data Strategy:
+
+1. LLM Interface (UX layer)
+
+- Turns user text → a structured intent + UserFinancialProfile object
+
+- Renders the final explanation / report to the user
+
+2. Orchestrator / Agent layer: Receives: intent + profile, then decides and routes:
+
+i. If new blueprint requested (MVP scope)
+
+- Calls: blueprint = generate_baby_budget_blueprint(profile)
+
+- Returns blueprint_json + blueprint_report_sections to the LLM to explain
+
+ii. If what-if scenario (future scope)
+
+- Intent: scenario tweak
+
+- Would call: scenario_parser(question) and appropriate calculators (e.g., simulate_cashflow).
+
+iii. If tax/Healthcare-plan intent (future scope)
+
+- Would call: generate_tax_recommendation(profile, location, employer_plans)
+
+3. Knowledge Graph (KG): Holds numbers, relationships, and rules as structured data, e.g.:
+
+- Daycare → recurring expense
+
+- Daycare → typical start at month 5–7 after birth
+
+- Daycare → cost band by region & care type
+
+- Childcare → recommended budget share (e.g., 15–25% of net income for HCOL)
+
+The generator and calculators call into the KG to fetch: BabyExpenseAssumptions for a given UserFinancialProfile.
+
+4. Rule-based calculators (strict data contracts):  All are deterministic, pure functions using structured inputs.
+
+- Input schema (UserFinancialProfile)
+
+- Income, taxes, region, due date, current savings, debts, etc.
+
+- Intermediate schema (BabyExpenseAssumptions from KG)
+
+- Childcare cost ranges, healthcare expected costs, gear one-time budget, etc.
+
+- Calculators return partial domain objects:
+
+- calculate_baby_5_year_plan(profile, assumptions) → FiveYearProjection
+
+- recommend_budget_split(profile, assumptions) → BudgetSplit
+
+- simulate_cashflow(five_year_projection, scenario_params) → CashflowProjection
+
+These do not know about chat, RAG, or narrative—only math + rules
+
+5. Baby Budget Blueprint Generator: The only component that assembles the full blueprint
+
+BabyBudgetBlueprint = { profile,  assumptions,   five_year_projection,   cashflow_projection,   budget_split,   warnings }
+
+Implementation:
+
+i. Calls:
+
+- KG to get assumptions:
+assumptions = get_baby_expense_assumptions(profile)
+
+- Calculators to compute outputs:
+
+- five_year_projection = calculate_baby_5_year_plan(profile, assumptions)
+
+- budget_split = recommend_budget_split(profile, assumptions)
+
+- cashflow_projection = simulate_cashflow(five_year_projection, default_scenario_params)
+
+ii. Returns:
+
+- blueprint_json (tables, numbers, flags = the BabyBudgetBlueprint object)
+
+- blueprint_report_sections (structured headings + key bullets, no prose yet)
+
+6. RAG Vector Store (Explanations & Templates)
+
+- Stores long-form guides and templates to help the LLM explain the plan and shape the report layout (not numbers).
+
+- LLM Interface uses RAG as follows:
+i. Input: intent + profile + blueprint_report_sections
+ii. Calls: retrieve_explanatory_guides(intent, profile)
+iii. Uses retrieved chunks + blueprint_report_sections to write the final empathetic narrative.
+
+Guardrails at RAG level:
+
+- Only curated, educational, non-advisory docs are indexed.
+
+- Topic/source filters prevent retrieval of:
+
+- Specific tax hacks
+
+- Recommendations on vendor services/tools
+
+- Any content outside “baby budgeting / general financial education.”
+
+7. Guardrails: Applied at multiple layers:
+
+i. Policy guardrails (LLM-level)
+
+- No specific tax strategies or strong directives; use framing like “suggestions,” “considerations”
+
+- Always include disclaimers when giving financial education
+
+- Avoid prescriptive language (“you must”) → use “here’s one way,” “consider…”
+
+ii. Business logic guardrails (calculator/generator-level)
+
+- Validate outputs:
+
+- No negative savings months unless clearly flagged
+
+- Ratios within sane ranges (e.g., childcare not >80% of take-home unless flagged as “unsustainable scenario”)
+
+- Raise structured warnings (e.g., warnings[] in the blueprint) that the LLM surfaces in the report
+
+8. Persistence & Analytics
+
+After generation, the system stores:
+
+- blueprint_json
+
+- profile
+
+- Rule/prompt versions used
+
+So that:
+
+- The user can re-open and review their plan.
+
+- We can analyze anonymized results across testers to refine assumptions, prompts, and UX.
+
+The final output to the user will be to deliver a one-time Baby Budget Blueprint for each user and test its perceived value.
+
+We will recruit a small group of new/expecting parents to try it and provide feedback.
+
+prioritization ensures an efficient roadmap that delivers value incrementally.
+
+## Metrics for Success
+
+To gauge the success of the Life-Event Financial Planning Agent, we will focus on a primary metric (North Star) that aligns with delivering core user value, as well as guardrail metrics to ensure we maintain quality and trust.
+
+- Primary Metric – Paid User Engagement: A strong candidate is Monthly Active Paid Users (MAPU) or subscription retention rate. This captures both acquisition and ongoing usage: we want not just one-off trials but that users find continuous value (through scenario planning or tracking) enough to stay subscribed month over month. High engagement indicates the product is essential in users’ lives. Another lens could be Number of Plans Created per User (including updates or new scenarios), showing that users are actively using the tool to make decisions. Ultimately, revenue is important (we could track MRR – Monthly Recurring Revenue), but usage will drive revenue, so focusing on active usage ensures we’re delivering value that users pay for.
+
+- Guardrail Metric – Customer Satisfaction and Trust: We will monitor Customer Satisfaction (CSAT) or Net Promoter Score (NPS) specifically for the planning experience. Because this product deals with sensitive life decisions, it’s crucial that users feel it’s helpful and trustworthy – a high NPS (e.g. “Would you recommend to other new parents?”) would indicate that. We’ll also track Plan Accuracy/Deviation: for users who follow the plan, how close were their actual expenses to our projected budget? If there’s a consistent pattern of underestimating costs, that’s a problem – we want our advice to be reliable. This acts as a guardrail so in pursuit of engagement we don’t give rosy but inaccurate scenarios. Another guardrail could be Churn for reasons of trust (if anyone cancels citing bad advice or confusion, that’s a red flag we address immediately). And since this touches finances, we’ll keep an eye on data security and privacy metrics (no breaches, etc., though that’s more a prerequisite than a metric of success).
+
+By balancing a growth metric (active paying users) with a quality metric (satisfaction/trust), we ensure we grow responsibly. For example, if engagement is high but NPS is low, we’d refocus on improving the experience rather than just marketing harder. On the other hand, if a small group loves it (high NPS) but adoption is low, we’d know to improve onboarding or awareness.
+
+## Trust, Privacy, and Bias Considerations
+
+• Do not store raw financial data unless encrypted
+
+• Ensure LLM output avoids bias toward stay-at-home or dual-income norms
+
+• All advice must include a “not financial advice” disclaimer
+
+• Allow for anonymous use with local save/download option
+
+## Conclusion
+
+NestWorth is a 0→1 Financial advisor for baby planning. This product idea addresses a major unmet need for millions of parents. It leverages AI to provide deeply personalized, scenario-driven guidance at a moment when people are making crucial financial decisions under stress. The MVP is positioned to have the core engine built out in a modular scalable fashion.
+
+From a business perspective, it targets a life event with high willingness to pay and numerous monetization avenues, from subscriptions to one-off purchases and partnerships. Early monetization tests (like the blueprint package) can validate its value, while the subscription model and life-long relationship with users can drive sustainable revenue. Importantly, the concept is highly defensible: by the time competitors realize the value of life-event planning AI, we can establish a moat via proprietary data, a trusted brand, and integration into users’ financial lives. As new parents become repeat customers for future milestones, our moat only grows stronger.
+
+## UI Mock
+
+*(embedded image in the original .docx — not carried over by this text conversion)*
+
+## Appendix
+
+**Sequence diagram** *(embedded image in the original .docx — not carried over by this text conversion)*
+
+**ERD** *(embedded image in the original .docx — not carried over by this text conversion)*
+
+Vibecoded MVP:
+
+https://www.loom.com/share/09c4e22ec15b4b53b7799419d56880c9

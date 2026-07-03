@@ -15,8 +15,8 @@ This is an **unmaintained prototype repo** (last commit 2026-01-02, originally b
 ## Known issues
 
 ### Security — fix before exposing beyond localhost
-- **`POST /api/v1/auth/reset-password-direct`** (`backend/routers/auth.py:253-281`) resets any user's password given only their email — no token/verification. Full account-takeover vector. A proper token-based flow already exists at `/reset-password` (`auth.py:215-250`); the `-direct` endpoint appears to be a leftover dev shortcut and should be removed or gated to `APP_ENV=development` before any shared/deployed use.
-- `forgot_password` (`auth.py:162-212`) returns the raw reset token in the API response when `APP_ENV=development`. Fine for local dev; make sure `APP_ENV` is never `development` outside your machine.
+- ~~`POST /api/v1/auth/reset-password-direct`~~ — **FIXED**. This endpoint reset any user's password given only their email (no token/verification) and was actually wired up as the app's primary reset flow (`Login.tsx` linked straight to `/reset-password` with no token, and `ResetPassword.tsx` ignored any token and called `-direct`). Removed the endpoint and model (`backend/routers/auth.py`, `backend/models/user.py`), and rewired the frontend to the proper token-based flow: `Login.tsx` → `/forgot-password` (request email) → backend issues a token → `/reset-password?token=...` → `ResetPassword.tsx` reads the token from the URL and calls the token-based `POST /api/v1/auth/reset-password`. If no token is present, the page now shows an error and a link back to `/forgot-password` instead of silently falling back to an insecure path.
+- `forgot_password` (`auth.py`) returns the raw reset token in the API response when `APP_ENV=development`. Fine for local dev; make sure `APP_ENV` is never `development` outside your machine.
 - No rate limiting on login/signup/reset endpoints.
 
 ### Config / deployment drift
@@ -35,7 +35,7 @@ This is an **unmaintained prototype repo** (last commit 2026-01-02, originally b
 
 ## Before deploying anywhere beyond local dev
 
-1. Remove or lock down `reset-password-direct`.
+1. ~~Remove or lock down `reset-password-direct`~~ — done, see above.
 2. Unify frontend API base URL handling to always use `VITE_API_BASE_URL` (no hardcoded localhost).
 3. Pin `backend/requirements.txt` versions.
 4. Confirm `APP_ENV` is not `development` in the deployed environment.

@@ -2,6 +2,12 @@
 
 Guidance for Claude Code (and future contributors) working in this repo.
 
+## TODO
+
+1. Update `frontend/README.md` to remove the stale "frontend-only localStorage" claims and reflect the real backend (see Documentation drift below).
+2. Write a dedicated deployment doc (or expand the Deployment plan section below into one) covering the Vercel + Railway + Atlas setup end-to-end, so it's not just steps buried in this file.
+3. Write a system architecture doc — frontend/backend/DB topology, auth flow, request flow for projection generation + AI summary + PDF export, and how `frontend/src/data/*.ts` relates to the source spreadsheets.
+
 ## Repo status
 
 This is an **unmaintained prototype repo** (last commit 2026-01-02, originally built fast via AI-assisted tooling — see `frontend/AI_RULES.md`). It works, but has known rough edges below. Don't assume the READMEs are accurate — verify against actual code before relying on documented behavior.
@@ -26,8 +32,9 @@ This is an **unmaintained prototype repo** (last commit 2026-01-02, originally b
 - `frontend/vercel.json` exists (SPA rewrite rule) suggesting Vercel was the intended frontend host, but there's no equivalent backend deploy config.
 
 ### Documentation drift
-- `frontend/README.md` claims auth and data persistence are "frontend-only using localStorage" — **this is stale**. The app has a real FastAPI + MongoDB backend with JWT auth. Don't trust that section.
+- `frontend/README.md` claims auth and data persistence are "frontend-only using localStorage" — **this is stale**. The app has a real FastAPI + MongoDB backend with JWT auth. Don't trust that section. (TODO #1 above.)
 - Root-level `test_*.py` files (16 of them) are manual integration scripts that hit a live server at `localhost:8000`, not a real pytest suite. No pytest config exists. See [Documentation & file inventory](#documentation--file-inventory).
+- ~~`backend/.env.example` documented `CORS_ORIGINS=http://localhost:5173`~~ — **FIXED** 2026-07-04. `frontend/vite.config.ts` actually runs the dev server on port **5137**, not 5173; the example would have silently broken local CORS. Corrected to `5137`.
 
 ### Other
 - `delete_all_users.py` at repo root is a destructive script with no guardrails — know it's there before running arbitrary root-level scripts.

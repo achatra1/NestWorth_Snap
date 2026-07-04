@@ -35,16 +35,17 @@ This is an **unmaintained prototype repo** (last commit 2026-01-02, originally b
 
 ## Deployment plan
 
-**Decision (2026-07-03): Vercel (frontend) + Railway (backend) + MongoDB Atlas (DB), all on free/hobby tiers.** No Docker needed — Railway auto-detects the FastAPI app from `backend/requirements.txt`; Vercel already has `frontend/vercel.json` for the SPA rewrite.
+**Decision (2026-07-03): Vercel (frontend) + Railway (backend) + MongoDB Atlas (DB), all on free/hobby tiers.**
 
 1. ~~Remove or lock down `reset-password-direct`~~ — done, see above.
 2. ~~Unify frontend API base URL handling to always use `VITE_API_BASE_URL`~~ — done, see above.
 3. ~~Pin `backend/requirements.txt` versions~~ — done, see above.
-4. Confirm `APP_ENV` is not `development` in the deployed environment (Railway env vars).
-5. Not yet done — Railway backend deploy: set `MONGODB_URI` (Atlas), `JWT_SECRET`, `CORS_ORIGINS` (the Vercel frontend URL), `OPENAI_API_KEY` (real key — required to boot, see the startup-crash bug above), `APP_ENV=production`, `PORT` (Railway sets this automatically; confirm `backend/main.py`/uvicorn honors `$PORT`).
-6. Not yet done — Vercel frontend deploy: set `VITE_API_BASE_URL` to the Railway backend URL.
-7. Not yet done — MongoDB Atlas: confirm network access allows Railway's egress (Atlas free tier defaults to IP allowlist; either allowlist `0.0.0.0/0` or Railway's static IP if on a plan that provides one).
-8. Not yet done — smoke-test signup/login/projection/PDF export end-to-end against the deployed stack once all three are live.
+4. ~~Add Railway build/start config~~ — **done 2026-07-04**. Added `railway.json` at repo root. This was necessary, not optional: `backend/main.py` and every router use absolute imports (`from backend.config import settings`), which only resolve if the process's working directory is the **repo root** with `backend/` as a package — but `requirements.txt` lives inside `backend/`. Railway's Nixpacks auto-detection would have gotten this wrong (it looks for `requirements.txt` at whatever it treats as the project root). `railway.json` pins: `buildCommand: pip install -r backend/requirements.txt`, `startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT`, `healthcheckPath: /healthz` (already exists in `main.py` and reports DB connectivity without crashing the app if Mongo is briefly unreachable). **Important: when creating the Railway service, leave its Root Directory as the repo root — do not point it at `backend/`,** or these paths break.
+5. Not yet done — MongoDB Atlas: create a free (M0) cluster, a database user, and under Network Access allow `0.0.0.0/0` (Railway doesn't publish static outbound IPs on the free/hobby plan, so a fixed allowlist isn't practical there). Copy the resulting `mongodb+srv://...` connection string.
+6. Not yet done — Railway backend deploy: create a project from this GitHub repo, root directory = repo root (see step 4), and set env vars: `MONGODB_URI` (from step 5), `JWT_SECRET` (generate one, e.g. `python -c "import secrets; print(secrets.token_urlsafe(48))"` — do not reuse the placeholder in `.env.example`), `CORS_ORIGINS` (Vercel frontend URL, set after step 7 once it's known — Railway lets you edit env vars post-deploy and redeploy), `OPENAI_API_KEY` (a real key — required just to boot, see the startup-crash bug below), `APP_ENV=production`. Railway injects `PORT` automatically; `railway.json`'s start command already reads it.
+7. Not yet done — Vercel frontend deploy: import `frontend/` as the project root (not the repo root — `frontend/vercel.json` and `package.json` live there), set `VITE_API_BASE_URL` to the Railway backend's public URL (known after step 6).
+8. Not yet done — go back and set `CORS_ORIGINS` on Railway to the real Vercel URL from step 7, then redeploy the backend (chicken-and-egg: the two URLs each depend on the other's service existing first).
+9. Not yet done — smoke-test signup/login/projection/PDF export end-to-end against the deployed stack once all three are live.
 
 ## Documentation & file inventory
 

@@ -2,11 +2,17 @@
 
 Guidance for Claude Code (and future contributors) working in this repo.
 
+## Current priority (2026-07-04)
+
+**Pivoted away from Railway deployment for now — get the app running locally first.** Railway deploys hit repeated Nixpacks build failures (missing Python provider, then PEP 668 externally-managed-environment; see Deployment plan below for the full history). Rather than keep debugging a cloud build in the dark, the priority is: confirm the full stack (frontend + backend + Atlas) runs correctly on this machine, then come back to deployment once local is solid. Railway/Vercel deployment work is paused, not abandoned — `railway.json`/`nixpacks.toml` stay in the repo for when we resume.
+
 ## TODO
 
-1. Update `frontend/README.md` to remove the stale "frontend-only localStorage" claims and reflect the real backend (see Documentation drift below).
-2. Write a dedicated deployment doc (or expand the Deployment plan section below into one) covering the Vercel + Railway + Atlas setup end-to-end, so it's not just steps buried in this file.
-3. Write a system architecture doc — frontend/backend/DB topology, auth flow, request flow for projection generation + AI summary + PDF export, and how `frontend/src/data/*.ts` relates to the source spreadsheets.
+1. **Get the app running locally end-to-end** (backend + frontend + Atlas) — current priority, see above.
+2. Resume Railway/Vercel deployment once local is confirmed working.
+3. Update `frontend/README.md` to remove the stale "frontend-only localStorage" claims and reflect the real backend (see Documentation drift below).
+4. Write a dedicated deployment doc (or expand the Deployment plan section below into one) covering the Vercel + Railway + Atlas setup end-to-end, so it's not just steps buried in this file.
+5. Write a system architecture doc — frontend/backend/DB topology, auth flow, request flow for projection generation + AI summary + PDF export, and how `frontend/src/data/*.ts` relates to the source spreadsheets.
 
 ## Repo status
 

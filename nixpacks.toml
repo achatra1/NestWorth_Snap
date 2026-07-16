@@ -8,4 +8,4 @@ cmds = [
 ]
 
 [start]
-cmd = "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/root/.nix-profile/lib && . /opt/venv/bin/activate && uvicorn backend.main:app --host 0.0.0.0 --port $PORT"
+cmd = "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/root/.nix-profile/lib && . /opt/venv/bin/activate && python3 -c \"import ssl; print('OPENSSL VERSION:', ssl.OPENSSL_VERSION)\" && uvicorn backend.main:app --host 0.0.0.0 --port $PORT"

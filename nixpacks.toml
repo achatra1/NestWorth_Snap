@@ -1,5 +1,5 @@
 [phases.setup]
-nixPkgs = ["python311", "stdenv.cc.cc.lib", "openssl"]
+nixPkgs = ["python311", "stdenv.cc.cc.lib"]
 
 [phases.install]
 cmds = [
@@ -8,4 +8,4 @@ cmds = [
 ]
 
 [start]
-cmd = "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/root/.nix-profile/lib && . /opt/venv/bin/activate && python3 -c \"import ssl; print('OPENSSL VERSION:', ssl.OPENSSL_VERSION)\" && echo '--- raw openssl s_client test against Atlas ---' && (echo Q | openssl s_client -connect ac-u08p1nr-shard-00-00.vpec8au.mongodb.net:27017 -servername ac-u08p1nr-shard-00-00.vpec8au.mongodb.net 2>&1 | head -40 || true) && echo '--- end raw test ---' && uvicorn backend.main:app --host 0.0.0.0 --port $PORT"
+cmd = "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/root/.nix-profile/lib && . /opt/venv/bin/activate && uvicorn backend.main:app --host 0.0.0.0 --port $PORT"

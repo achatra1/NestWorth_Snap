@@ -2,17 +2,15 @@
 
 Guidance for Claude Code (and future contributors) working in this repo.
 
-## Current priority (2026-07-04)
+## Current priority (2026-08-03)
 
-**Pivoted away from Railway deployment for now — get the app running locally first.** Railway deploys hit repeated Nixpacks build failures (missing Python provider, then PEP 668 externally-managed-environment; see Deployment plan below for the full history). Rather than keep debugging a cloud build in the dark, the priority is: confirm the full stack (frontend + backend + Atlas) runs correctly on this machine, then come back to deployment once local is solid. Railway/Vercel deployment work is paused, not abandoned — `railway.json`/`nixpacks.toml` stay in the repo for when we resume.
+**Deployment complete — full stack is live.** Backend is deployed on Railway (connected to Atlas, healthcheck passing) and the frontend is now deployed on Vercel (`frontend/` as project root, `VITE_API_BASE_URL` pointed at the Railway backend). `CORS_ORIGINS` on Railway has been updated to the live Vercel URL and the backend redeployed. End-to-end smoke test (signup/login/projection/PDF export) against the deployed stack has been completed. See Deployment plan below for full history. Next up: the documentation/architecture write-ups in the TODO list below.
 
 ## TODO
 
-1. **Get the app running locally end-to-end** (backend + frontend + Atlas) — current priority, see above.
-2. Resume Railway/Vercel deployment once local is confirmed working.
-3. Update `frontend/README.md` to remove the stale "frontend-only localStorage" claims and reflect the real backend (see Documentation drift below).
-4. Write a dedicated deployment doc (or expand the Deployment plan section below into one) covering the Vercel + Railway + Atlas setup end-to-end, so it's not just steps buried in this file.
-5. Write a system architecture doc — frontend/backend/DB topology, auth flow, request flow for projection generation + AI summary + PDF export, and how `frontend/src/data/*.ts` relates to the source spreadsheets.
+1. Update `frontend/README.md` to remove the stale "frontend-only localStorage" claims and reflect the real backend (see Documentation drift below).
+2. Write a dedicated deployment doc (or expand the Deployment plan section below into one) covering the Vercel + Railway + Atlas setup end-to-end, so it's not just steps buried in this file.
+3. Write a system architecture doc — frontend/backend/DB topology, auth flow, request flow for projection generation + AI summary + PDF export, and how `frontend/src/data/*.ts` relates to the source spreadsheets.
 
 ## Repo status
 
@@ -50,6 +48,8 @@ This is an **unmaintained prototype repo** (last commit 2026-01-02, originally b
 
 **Decision (2026-07-03): Vercel (frontend) + Railway (backend) + MongoDB Atlas (DB), all on free/hobby tiers.**
 
+**Status: COMPLETE as of 2026-08-03.** All 9 steps below are done — frontend live on Vercel, backend live on Railway (connected to Atlas), CORS configured between them, and an end-to-end smoke test passed. The step-by-step history is kept below for reference (it documents real failure modes hit along the way — Nixpacks/Nix packaging, `LD_LIBRARY_PATH`, Atlas TLS/allowlisting — in case a future redeploy regresses any of them).
+
 1. ~~Remove or lock down `reset-password-direct`~~ — done, see above.
 2. ~~Unify frontend API base URL handling to always use `VITE_API_BASE_URL`~~ — done, see above.
 3. ~~Pin `backend/requirements.txt` versions~~ — done, see above.
@@ -57,10 +57,10 @@ This is an **unmaintained prototype repo** (last commit 2026-01-02, originally b
 
 **Getting visibility into a failed healthcheck:** Railway's healthcheck retry panel (the "Attempt #1 failed with service unavailable..." log) only reports pass/fail, never the actual response or crash reason. The real detail — stdout/stderr from the container, including Python tracebacks — is in the service's **Deploy Logs** tab, separate from Build Logs and separate from the healthcheck panel. If every single attempt fails identically with no variation (as opposed to intermittent failures), that's a strong signal the process crashed on startup before ever binding to a port, rather than a slow-starting or flaky app — check Deploy Logs first in that case.
 5. ~~MongoDB Atlas: create a free (M0) cluster, a database user, and under Network Access allow `0.0.0.0/0`~~ — **done**. Cluster and connection string were already set up earlier; the Network Access allowlist was the missing piece and caused the TLS failure documented in step 4 above until corrected 2026-07-16.
-6. Not yet done — Railway backend deploy: create a project from this GitHub repo, root directory = repo root (see step 4), and set env vars: `MONGODB_URI` (from step 5), `JWT_SECRET` (generate one, e.g. `python -c "import secrets; print(secrets.token_urlsafe(48))"` — do not reuse the placeholder in `.env.example`), `CORS_ORIGINS` (Vercel frontend URL, set after step 7 once it's known — Railway lets you edit env vars post-deploy and redeploy), `OPENAI_API_KEY` (a real key — required just to boot, see the startup-crash bug below), `APP_ENV=production`. Railway injects `PORT` automatically; `railway.json`'s start command already reads it.
-7. Not yet done — Vercel frontend deploy: import `frontend/` as the project root (not the repo root — `frontend/vercel.json` and `package.json` live there), set `VITE_API_BASE_URL` to the Railway backend's public URL (known after step 6).
-8. Not yet done — go back and set `CORS_ORIGINS` on Railway to the real Vercel URL from step 7, then redeploy the backend (chicken-and-egg: the two URLs each depend on the other's service existing first).
-9. Not yet done — smoke-test signup/login/projection/PDF export end-to-end against the deployed stack once all three are live.
+6. ~~Railway backend deploy~~ — **done**. Project created from this GitHub repo, root directory = repo root (see step 4), env vars set (`MONGODB_URI`, `JWT_SECRET`, `CORS_ORIGINS`, `OPENAI_API_KEY`, `APP_ENV=production`). Railway injects `PORT` automatically; `railway.json`'s start command reads it.
+7. ~~Vercel frontend deploy~~ — **done** 2026-08-03. Imported `frontend/` as the project root (not the repo root), `VITE_API_BASE_URL` set to the Railway backend's public URL.
+8. ~~Set `CORS_ORIGINS` on Railway to the real Vercel URL, redeploy backend~~ — **done** 2026-08-03.
+9. ~~Smoke-test signup/login/projection/PDF export end-to-end against the deployed stack~~ — **done** 2026-08-03. Full stack (Vercel frontend + Railway backend + MongoDB Atlas) confirmed working end-to-end.
 
 ## Documentation & file inventory
 

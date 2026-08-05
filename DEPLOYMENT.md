@@ -18,6 +18,7 @@ Status: fully live as of 2026-08-03 (frontend on Vercel, backend on Railway conn
 - Build/deploy config lives in two files at the repo root:
   - `nixpacks.toml` — declares `nixPkgs` (`python311`, `stdenv.cc.cc.lib` for `libstdc++.so.6` needed by pandas/numpy), creates a venv at `/opt/venv`, installs `backend/requirements.txt` into it (working around Nix's PEP 668 externally-managed-environment restriction), and starts uvicorn with `LD_LIBRARY_PATH` appended (not prepended — prepending Nix's lib dir ahead of the system path risks shadowing the OpenSSL Python's `_ssl` module was built against, which manifests as the same Atlas TLS alert described above).
   - `railway.json` — deploy-level settings only (`healthcheckPath: /healthz`, `restartPolicyType`). Build config stays entirely in `nixpacks.toml`.
+- Swagger UI is available at `<railway-url>/docs` with no extra config (FastAPI's default docs route is never disabled) — useful for smoke-testing the deployed API directly. See `ARCHITECTURE.md`'s "API documentation" and "End-to-end API call sequence" sections for the request order and copy-paste payloads.
 - Required environment variables:
   - `MONGODB_URI`
   - `JWT_SECRET`

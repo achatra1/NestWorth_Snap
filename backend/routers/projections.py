@@ -19,6 +19,14 @@ class CalculateProjectionRequest(BaseModel):
     """Request model for projection calculation."""
     profile_id: Optional[str] = None
 
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "profile_id": None
+            }
+        }
+    }
+
 
 @router.post("/calculate")
 async def calculate_projection(

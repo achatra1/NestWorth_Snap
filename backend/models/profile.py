@@ -58,7 +58,26 @@ class FinancialProfileBase(BaseModel):
 
 class FinancialProfileCreate(FinancialProfileBase):
     """Schema for creating a financial profile."""
-    pass
+
+    model_config = {
+        "populate_by_name": True,
+        "alias_generator": to_camel,
+        "json_schema_extra": {
+            "example": {
+                "partner1Income": 5000.0,
+                "partner2Income": 4500.0,
+                "zipCode": "10001",
+                "dueDate": "2026-04-15",
+                "currentSavings": 10000.0,
+                "numberOfChildren": 1,
+                "childcarePreference": "daycare",
+                "partner1Leave": {"durationWeeks": 12, "percentPaid": 100},
+                "partner2Leave": {"durationWeeks": 12, "percentPaid": 60},
+                "monthlyHousingCost": 2000.0,
+                "monthlyCreditCardExpenses": 500.0
+            }
+        }
+    }
 
 
 class FinancialProfile(FinancialProfileBase):

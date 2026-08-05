@@ -42,11 +42,30 @@ class UserCreate(BaseModel):
     name: str
     password: str = Field(min_length=8)
 
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "email": "sarah@example.com",
+                "name": "Sarah Chen",
+                "password": "correcthorsebattery"
+            }
+        }
+    }
+
 
 class UserLogin(BaseModel):
     """Schema for user login."""
     email: EmailStr
     password: str
+
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "email": "sarah@example.com",
+                "password": "correcthorsebattery"
+            }
+        }
+    }
 
 
 class UserResponse(BaseModel):
@@ -76,11 +95,28 @@ class PasswordResetRequest(BaseModel):
     """Schema for password reset request."""
     email: EmailStr
 
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "email": "sarah@example.com"
+            }
+        }
+    }
+
 
 class PasswordReset(BaseModel):
     """Schema for password reset."""
     token: str
     new_password: str = Field(min_length=8)
+
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "token": "paste-the-reset_token-from-forgot-password-response-here",
+                "new_password": "newcorrecthorsebattery"
+            }
+        }
+    }
 
 
 class MessageResponse(BaseModel):

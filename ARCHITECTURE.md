@@ -54,7 +54,9 @@ Frontend and backend are deployed independently and communicate only over HTTP(S
 
 ## Frontend reference data
 
-`frontend/src/data/*.ts` (`childcareCostsByZip.ts`, `oneTimeCosts.ts`, `recurringCosts.ts`) are TypeScript tables compiled from the root-level source spreadsheets (`Example.xlsx`, `One Time costs.xlsx`, `Recurring costs.xlsx`, `Ref Data Childcare cost byZip.xlsx`). These are the same tables the backend's projection engine consults — the spreadsheets are the data's provenance/source-of-record, not something read at runtime. To update reference data, edit the spreadsheets and regenerate (or hand-edit) the corresponding `.ts` file; there is no automated spreadsheet→TS pipeline currently.
+`frontend/src/data/*.ts` (`childcareCostsByZip.ts`, `oneTimeCosts.ts`, `recurringCosts.ts`) are TypeScript tables compiled from the source spreadsheets in `data/` (`Example.xlsx`, `One Time costs.xlsx`, `Recurring costs.xlsx`, `Ref Data Childcare cost byZip.xlsx`). To update reference data, edit the spreadsheets and regenerate (or hand-edit) the corresponding `.ts` file; there is no automated spreadsheet→TS pipeline currently.
+
+Two of these spreadsheets are also read directly at runtime on the backend, not just used as frontend provenance: `backend/data/childcare_loader.py` loads `data/Ref Data Childcare cost byZip.xlsx` and `backend/data/recurring_loader.py` loads `data/Recurring costs.xlsx` (both fall back to hardcoded defaults if the file is missing). `Example.xlsx` and `One Time costs.xlsx` are provenance-only — nothing in the app reads them at runtime.
 
 ## Known architectural gaps
 

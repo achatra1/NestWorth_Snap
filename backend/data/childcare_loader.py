@@ -12,7 +12,7 @@ from functools import lru_cache
 # Path to the Excel file (relative to project root)
 EXCEL_FILE_PATH = os.path.join(
     os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
-    'Ref Data Childcare cost byZip.xlsx'
+    'data', 'Ref Data Childcare cost byZip.xlsx'
 )
 
 

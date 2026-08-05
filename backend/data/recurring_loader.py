@@ -15,7 +15,7 @@ def get_recurring_costs() -> Dict[str, float]:
     # Get the path to the Excel file
     current_dir = os.path.dirname(os.path.abspath(__file__))
     project_root = os.path.dirname(current_dir)
-    excel_path = os.path.join(project_root, '..', 'Recurring costs.xlsx')
+    excel_path = os.path.join(project_root, '..', 'data', 'Recurring costs.xlsx')
     
     # Normalize the path
     excel_path = os.path.normpath(excel_path)

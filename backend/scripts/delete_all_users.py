@@ -2,6 +2,7 @@
 Script to delete all users from the MongoDB database
 """
 import asyncio
+import sys
 from motor.motor_asyncio import AsyncIOMotorClient
 from backend.config import settings
 
@@ -31,5 +32,9 @@ async def delete_all_users():
         print("\n✓ Database connection closed")
 
 if __name__ == "__main__":
+    if "--yes" not in sys.argv:
+        print("This will permanently delete ALL users, profiles, and projections.")
+        print("Re-run with --yes to confirm: python -m backend.scripts.delete_all_users --yes")
+        sys.exit(1)
     print("Deleting all users, profiles, and projections from the database...")
     asyncio.run(delete_all_users())

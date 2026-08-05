@@ -36,6 +36,7 @@ Thumbs.db
 .pytest_cache/
 .coverage
 htmlcov/
+test_*_results.html
 
 # Node (for frontend)
 node_modules/

@@ -4,44 +4,45 @@ An AI-powered financial planning tool that helps new and expecting parents under
 
 ## Features
 
-- **User Authentication**: Secure registration and login (frontend-only using localStorage)
+- **User Authentication**: JWT-based registration and login backed by a FastAPI server (`backend/`), with argon2 password hashing
 - **Financial Profile Onboarding**: Guided 10-question form to collect essential information
 - **5-Year Financial Projection**: Deterministic calculation engine with year-by-year breakdown
 - **Warning System**: Automated detection of cashflow issues and financial challenges
-- **AI-Powered Summary**: Empathetic, template-based summary of financial projections
-- **PDF Export**: Download complete financial plan using browser print functionality
+- **AI-Powered Summary**: Generated via the OpenAI API from the calculated projection data
+- **PDF Export**: Server-generated PDF (reportlab) of the complete financial plan
 - **Assumption Transparency**: Clear display of all assumptions used
 - **Reference Data Tables**: Real cost data from national surveys and regional childcare databases
 
 ## Tech Stack
 
-- **Frontend**: React 18 + TypeScript
+- **Frontend**: React 18 + TypeScript + Vite
 - **Styling**: Tailwind CSS + shadcn/ui components
 - **Routing**: React Router v6
 - **State Management**: React Context API
-- **Data Persistence**: localStorage (frontend-only)
-- **PDF Export**: Browser print functionality
+- **Backend**: FastAPI + Motor (async MongoDB), see `backend/`
+- **Data Persistence**: MongoDB Atlas, via the backend's JWT-authenticated API
+- **PDF Export**: Generated server-side (reportlab) and downloaded from the backend
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js 18+ and npm
+- Node.js 18+ and pnpm
+- A running instance of the backend (see `backend/README.md` / repo root `CLAUDE.md`), or `VITE_API_BASE_URL` pointed at a deployed backend
 
 ### Installation
 
 1. Clone the repository
 2. Install dependencies:
    ```bash
-   npm install
+   pnpm install
    ```
-
-3. Start the development server:
+3. Copy `.env.example` to `.env` and set `VITE_API_BASE_URL` if not using the default `http://localhost:8000`
+4. Start the development server:
    ```bash
-   npm run dev
+   pnpm dev
    ```
-
-4. Open your browser to `http://localhost:5137`
+5. Open your browser to `http://localhost:5137`
 
 ## Usage
 
@@ -222,25 +223,17 @@ The codebase is structured to easily add:
    - Deductible tracking
    - HSA/FSA planning
 
-5. **Real Backend Integration**
-   - Replace localStorage with database
-   - User data persistence
-   - Historical tracking
-
-6. **Real AI Integration**
-   - Connect to OpenAI API
-   - Dynamic, personalized summaries
-   - Conversational Q&A
-
-7. **Multi-Child Support**
+5. **Multi-Child Support**
    - Track multiple children
    - Sibling cost adjustments
    - Family planning scenarios
 
-8. **Expense Tracking**
+6. **Expense Tracking**
    - Compare actual vs projected
    - Budget variance analysis
    - Spending insights
+
+(Backend persistence and OpenAI-powered summaries are already implemented — see `backend/`.)
 
 ## Data Models
 
@@ -275,12 +268,13 @@ The codebase is structured to easily add:
 
 ## Important Notes
 
-- **Frontend-Only**: All data stored in localStorage (not production-ready)
-- **No Real Authentication**: Passwords stored in plain text (demo only)
-- **Template-Based AI**: Summary uses templates, not real LLM
+- **Backend-Backed**: Auth and all financial data persist in MongoDB Atlas via `backend/`, not localStorage
+- **Real Authentication**: JWT tokens, argon2-hashed passwords
+- **AI Summary**: Generated via the OpenAI API from the calculated projection (see `backend/integrations/openai_client.py`)
 - **Reference Data**: Based on national surveys and regional databases
 - **Cost Variations**: Actual costs vary by location, choices, and circumstances
 - **Not Financial Advice**: Always includes disclaimers
+- This is a prototype — see repo root `CLAUDE.md` for known issues (security, deployment) before exposing it beyond localhost
 
 ## Updating Reference Data
 
@@ -312,5 +306,4 @@ Contributions welcome for:
 - Updated cost data from recent surveys
 - Additional expense categories
 - Improved cost calculation logic
-- Real backend integration
 - Enhanced PDF export styling

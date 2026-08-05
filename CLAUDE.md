@@ -2,19 +2,17 @@
 
 Guidance for Claude Code (and future contributors) working in this repo.
 
-## Current priority (2026-08-03)
+## Current priority (2026-08-05)
 
-**Deployment complete — full stack is live.** Backend is deployed on Railway (connected to Atlas, healthcheck passing) and the frontend is now deployed on Vercel (`frontend/` as project root, `VITE_API_BASE_URL` pointed at the Railway backend). `CORS_ORIGINS` on Railway has been updated to the live Vercel URL and the backend redeployed. End-to-end smoke test (signup/login/projection/PDF export) against the deployed stack has been completed. See Deployment plan below for full history. Next up: the documentation/architecture write-ups in the TODO list below.
+**Deployment and documentation cleanup both complete.** Backend is deployed on Railway (connected to Atlas, healthcheck passing) and the frontend is deployed on Vercel (`frontend/` as project root, `VITE_API_BASE_URL` pointed at the Railway backend). `CORS_ORIGINS` on Railway is set to the live Vercel URL. End-to-end smoke test (signup/login/projection/PDF export) against the deployed stack passed 2026-08-03. See Deployment plan below for full history; see `DEPLOYMENT.md` and `ARCHITECTURE.md` for the standalone write-ups. Documentation cleanup (stale docs removed, `frontend/README.md` corrected, root-level scripts relocated) completed 2026-08-05 — see Documentation & file inventory below.
 
 ## TODO
 
-1. Update `frontend/README.md` to remove the stale "frontend-only localStorage" claims and reflect the real backend (see Documentation drift below).
-2. Write a dedicated deployment doc (or expand the Deployment plan section below into one) covering the Vercel + Railway + Atlas setup end-to-end, so it's not just steps buried in this file.
-3. Write a system architecture doc — frontend/backend/DB topology, auth flow, request flow for projection generation + AI summary + PDF export, and how `frontend/src/data/*.ts` relates to the source spreadsheets.
+Nothing outstanding from the previous documentation pass. Open items are tracked inline in Known issues below (security hardening, `OPENAI_API_KEY` boot requirement, CI/Dockerfile, converting `backend/tests/manual/` to real pytest).
 
 ## Repo status
 
-This is an **unmaintained prototype repo** (last commit 2026-01-02, originally built fast via AI-assisted tooling — see `frontend/AI_RULES.md`). It works, but has known rough edges below. Don't assume the READMEs are accurate — verify against actual code before relying on documented behavior.
+This is an **unmaintained prototype repo** (last commit 2026-01-02, originally built fast via AI-assisted tooling — dyad, no longer in use; its scaffolding files were removed 2026-08-05, see Documentation & file inventory). It works, but has known rough edges below. Don't assume the READMEs are accurate — verify against actual code before relying on documented behavior.
 
 ## Stack
 
@@ -36,12 +34,12 @@ This is an **unmaintained prototype repo** (last commit 2026-01-02, originally b
 - `frontend/vercel.json` exists (SPA rewrite rule) suggesting Vercel was the intended frontend host, but there's no equivalent backend deploy config.
 
 ### Documentation drift
-- `frontend/README.md` claims auth and data persistence are "frontend-only using localStorage" — **this is stale**. The app has a real FastAPI + MongoDB backend with JWT auth. Don't trust that section. (TODO #1 above.)
-- Root-level `test_*.py` files (16 of them) are manual integration scripts that hit a live server at `localhost:8000`, not a real pytest suite. No pytest config exists. See [Documentation & file inventory](#documentation--file-inventory).
+- ~~`frontend/README.md` claims auth and data persistence are "frontend-only using localStorage"~~ — **FIXED** 2026-08-05. Rewrote Features/Tech Stack/Important Notes/Future Enhancements to describe the real FastAPI + MongoDB Atlas backend (JWT auth, OpenAI-generated summaries, server-side PDF export), and corrected the install instructions from `npm` to `pnpm`.
+- `backend/tests/manual/*.py` (16 files, moved from repo root 2026-08-05) are manual integration scripts that hit a live server at `localhost:8000`, not a real pytest suite. No pytest config exists. See [Documentation & file inventory](#documentation--file-inventory).
 - ~~`backend/.env.example` documented `CORS_ORIGINS=http://localhost:5173`~~ — **FIXED** 2026-07-04. `frontend/vite.config.ts` actually runs the dev server on port **5137**, not 5173; the example would have silently broken local CORS. Corrected to `5137`.
 
 ### Other
-- `delete_all_users.py` at repo root is a destructive script with no guardrails — know it's there before running arbitrary root-level scripts.
+- `backend/scripts/delete_all_users.py` (moved from repo root 2026-08-05) is a destructive script — now requires an explicit `--yes` flag (`python -m backend.scripts.delete_all_users --yes`) or it exits without doing anything.
 - **App fails to start if `OPENAI_API_KEY` is empty/unset.** `backend/integrations/openai_client.py` constructs `AsyncOpenAI(api_key=settings.OPENAI_API_KEY)` at **module import time**. With `openai==2.44.0` (pinned above), the client constructor raises `OpenAIError: Missing credentials` immediately if the key is empty — which crashes the whole FastAPI app on startup, not just AI-summary requests. `backend/config.py` defaults `OPENAI_API_KEY` to `""`, implying it was meant to be optional, but in practice it's a hard requirement even to boot the server. Found while smoke-testing the pinned dependency versions: import succeeded with a dummy key (`sk-test-dummy`) and failed with an empty one. Not fixed yet — options are (a) make `OPENAI_API_KEY` a required setting and fail fast with a clear error, or (b) lazily construct the OpenAI client inside the request path so the rest of the app still boots without it.
 
 ## Deployment plan
@@ -69,20 +67,23 @@ Living audit of every doc/script/data file in the repo — not code. Goal: `CLAU
 | File | Purpose | Verdict |
 |---|---|---|
 | `CLAUDE.md` | Source of truth for repo status, known issues, deployment plan, this inventory. | **Keep** — authoritative. |
-| `frontend/README.md` | Frontend setup/usage doc. | **Keep, but fix** — "frontend-only localStorage" section is stale (see Documentation drift above); needs a rewrite to reflect the real backend. |
-| `Backend-dev-plan.md` (723 lines) | Original pre-build plan for the FastAPI backend (executive summary, why, scope). Historical design rationale, written before the backend existed. | **Consolidate then remove** — anything still true belongs in `CLAUDE.md`'s Stack section; the plan-vs-actual gap isn't worth maintaining as a second document. Not yet actioned. |
-| `BROWSER_REFRESH_INSTRUCTIONS.md` (24 lines) | One-off note: "the profile save fix has been applied, hard-refresh your browser." Describes a bug that's already fixed. | **Remove** — no ongoing value, purely a stale support note. Not yet actioned. |
-| `PROFILE_PREPOPULATION_IMPLEMENTATION.md` (115 lines) | Changelog-style writeup of one feature's implementation (files touched, what changed). | **Remove** — this is what commit messages and `git log`/`git blame` are for; it will only get staler as the code around it changes. Not yet actioned. |
+| `ARCHITECTURE.md` | System architecture — topology, auth flow, projection/AI-summary/PDF request flow, `frontend/src/data/*.ts` provenance. | **Keep** — added 2026-08-05. |
+| `DEPLOYMENT.md` | Standalone deployment doc — Vercel + Railway + Atlas setup, expanded from the Deployment plan section below. | **Keep** — added 2026-08-05. |
+| `frontend/README.md` | Frontend setup/usage doc. | **Keep** — rewritten 2026-08-05 to reflect the real backend (was stale, see Documentation drift above). |
+| ~~`Backend-dev-plan.md`~~ (723 lines) | Original pre-build plan for the FastAPI backend. Historical design rationale, written before the backend existed. | **REMOVED** 2026-08-05 — durable parts (stack, constraints) already covered by `CLAUDE.md`'s Stack section; rest superseded by the actual code. |
+| ~~`BROWSER_REFRESH_INSTRUCTIONS.md`~~ (24 lines) | One-off note: "the profile save fix has been applied, hard-refresh your browser." Describes a bug that's already fixed. | **REMOVED** 2026-08-05 — no ongoing value. |
+| ~~`PROFILE_PREPOPULATION_IMPLEMENTATION.md`~~ (115 lines) | Changelog-style writeup of one feature's implementation. | **REMOVED** 2026-08-05 — `git log`/`git blame` cover this. |
 | `PRD.md` (root) | **Canonical PRD** — problem statement, goals, personas, MVP scope, market analysis, product spec. Converted from `NestWorth PRD v1.docx` on 2026-07-03 (python-docx script; two embedded images — UI Mock, Appendix diagrams — were not carried over, noted inline in the file). | **Keep — this is now the source of truth PRD.** Decided 2026-07-03: docx is canonical, this is its maintained markdown copy. |
 | `NestWorth PRD v1.docx` (1.8 MB binary) | Original stakeholder-authored PRD ("Downloadable PRD Reference" commit) — the canonical source `PRD.md` was converted from. | **Keep as source-of-record for the two embedded images**; `PRD.md` is what should actually be read/edited going forward since binaries don't diff. If this file is edited again, `PRD.md` needs re-conversion. |
 | ~~`PRD` (root, no extension, plaintext)~~ | Old duplicate PRD export. | **REMOVED** 2026-07-03 — superseded by `PRD.md`. |
 | ~~`frontend/PRD.md`~~ | "Deep Mode PRD Generation" output from the AI app-builder tool (dyad) that originally scaffolded this app. | **REMOVED** 2026-07-03 — superseded by root `PRD.md`. |
-| `frontend/PRD-Template.md` (229 lines) | Blank template with `[placeholder]` text, generated by the same tool. Not filled in. | **Remove** — dead template, not a real doc. |
-| `frontend/.prd-metadata.json` | Metadata pointing at `PRD.md`/`PRD-Template.md`, used by the dyad tool. | **Keep only if still using dyad**; otherwise remove alongside the PRD template. |
-| `frontend/AI_RULES.md` (19 lines) | Tech-stack constraints for the dyad AI app-builder (React Router in `App.tsx`, shadcn/ui, Tailwind, etc.). | **Keep only if still using dyad** to make edits; the durable parts (tech stack) are now also captured in `CLAUDE.md`. Otherwise remove. |
-| Root `test_*.py` (16 files) | Manual integration scripts that `curl`/`urlopen` a live `localhost:8000` server (auth, profile, projections, password reset, onboarding flows). Not a pytest suite — no fixtures, no config, run ad hoc. | **Consolidate** — move into `backend/tests/` and convert to real `pytest` tests (or at minimum a `scripts/manual/` folder) so they stop cluttering repo root and start running in CI once CI exists. Not yet actioned. |
-| `test_browser_results.html` | Looks like a generated output artifact from a test run, not source. | **Remove** — regenerable output shouldn't be committed; add pattern to `.gitignore` if these scripts are kept. |
-| `delete_all_users.py` | Destructive admin script, no confirmation prompt, sits at repo root next to everything else. | **Move + guard** — relocate to `backend/scripts/` and add a confirmation prompt / require an explicit `--yes` flag before it runs. Not yet actioned; flagged as a risk in Known issues above. |
-| `Example.xlsx`, `One Time costs.xlsx`, `Recurring costs.xlsx`, `Ref Data Childcare cost byZip.xlsx` | Source spreadsheets for the reference cost data compiled into `frontend/src/data/*.ts` (per `frontend/README.md`). | **Keep** — legitimate data provenance; low priority to reorganize into a `data/` or `reference/` subfolder for tidiness. |
+| ~~`frontend/PRD-Template.md`~~ (229 lines) | Blank template with `[placeholder]` text, generated by dyad. Not filled in. | **REMOVED** 2026-08-05 — dead template, not a real doc. |
+| ~~`frontend/.prd-metadata.json`~~ | Metadata pointing at `PRD.md`/`PRD-Template.md`, used by dyad. | **REMOVED** 2026-08-05 — confirmed dyad is no longer used to edit this repo. |
+| ~~`frontend/AI_RULES.md`~~ (19 lines) | Tech-stack constraints for the dyad AI app-builder. | **REMOVED** 2026-08-05 — dyad no longer in use; durable parts already captured in `CLAUDE.md`'s Stack section. |
+| ~~`frontend/src/components/made-with-dyad.tsx`~~ | dyad's "Made with Dyad" badge component. | **REMOVED** 2026-08-05 — unused (not imported anywhere), dyad no longer in use. |
+| `backend/tests/manual/test_*.py` (16 files, moved from repo root 2026-08-05) | Manual integration scripts that `curl`/`urlopen` a live `localhost:8000` server (auth, profile, projections, password reset, onboarding flows). Not a pytest suite — no fixtures, no config, run ad hoc. | **Relocated, not yet converted** — moved out of repo root into `backend/tests/manual/` so they stop cluttering the root. Converting to real `pytest` tests (fixtures, config, CI integration) is still open — see TODO-equivalent note in Documentation drift above. |
+| ~~`test_browser_results.html`~~ | Generated output artifact from a test run, not source. | **REMOVED** 2026-08-05 — regenerable output shouldn't be committed; `.gitignore` now has a `test_*_results.html` pattern to prevent recurrence. |
+| `backend/scripts/delete_all_users.py` (moved from repo root 2026-08-05) | Destructive admin script. | **Moved + guarded** — relocated to `backend/scripts/`; now requires an explicit `--yes` flag or it exits without doing anything. |
+| `Example.xlsx`, `One Time costs.xlsx`, `Recurring costs.xlsx`, `Ref Data Childcare cost byZip.xlsx` | Source spreadsheets for the reference cost data compiled into `frontend/src/data/*.ts` (see `ARCHITECTURE.md`). | **Keep** — legitimate data provenance; low priority to reorganize into a `data/` or `reference/` subfolder for tidiness. |
 
-Remaining rows are still tracking-list-only (not yet actioned) — say the word on any of them and I'll execute it.
+Remaining open item: converting `backend/tests/manual/` into a real pytest suite (fixtures, config, CI). Say the word and I'll execute it.

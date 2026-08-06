@@ -1,3 +1,15 @@
+import logging
+
+# Configured before any backend.* imports so module-load-time logging
+# (e.g. the data loaders in backend/data/) isn't silently dropped by
+# Python's default "no handler configured" behavior.
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+)
+logger = logging.getLogger(__name__)
+
+import time
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
@@ -13,15 +25,35 @@ app = FastAPI(
     version="1.0.0"
 )
 
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    """Log every request with method, path, status code, and duration."""
+    start = time.perf_counter()
+    response = await call_next(request)
+    duration_ms = (time.perf_counter() - start) * 1000
+    log = logger.error if response.status_code >= 500 else logger.info
+    log(f"{request.method} {request.url.path} -> {response.status_code} ({duration_ms:.1f}ms)")
+    return response
+
+
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     """Custom handler for validation errors to provide better error messages."""
-    print(f"Validation error on {request.method} {request.url}")
-    print(f"Error details: {exc.errors()}")
-    print(f"Request body: {exc.body}")
+    logger.warning(f"Validation error on {request.method} {request.url}: {exc.errors()}")
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content={"detail": exc.errors(), "body": exc.body},
+    )
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    """Catch-all handler so unexpected errors are logged with a traceback instead of silently 500ing."""
+    logger.exception(f"Unhandled exception on {request.method} {request.url}")
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={"detail": "Internal server error"},
     )
 
 # CORS configuration
@@ -44,12 +76,14 @@ app.include_router(exports.router)
 @app.on_event("startup")
 async def startup_event():
     """Initialize database connection on startup."""
+    logger.info("Starting NestWorth API")
     await connect_to_mongo()
 
 
 @app.on_event("shutdown")
 async def shutdown_event():
     """Close database connection on shutdown."""
+    logger.info("Shutting down NestWorth API")
     await close_mongo_connection()
 
 

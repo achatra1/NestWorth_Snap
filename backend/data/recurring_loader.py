@@ -2,9 +2,12 @@
 Loader for recurring costs from Excel file.
 """
 
+import logging
 import os
 from typing import Dict, Optional
 import openpyxl
+
+logger = logging.getLogger(__name__)
 
 
 def get_recurring_costs() -> Dict[str, float]:
@@ -21,16 +24,16 @@ def get_recurring_costs() -> Dict[str, float]:
     excel_path = os.path.normpath(excel_path)
     
     if not os.path.exists(excel_path):
-        print(f"Warning: Recurring costs Excel file not found at {excel_path}")
+        logger.warning(f"Recurring costs Excel file not found at {excel_path}, using defaults")
         return get_default_recurring_costs()
-    
+
     try:
         # Load the workbook
         workbook = openpyxl.load_workbook(excel_path, data_only=True)
         sheet = workbook.active
-        
+
         costs = {}
-        
+
         # Skip header row, start from row 2
         for row in sheet.iter_rows(min_row=2, values_only=True):
             if row[0] and row[1]:  # Both item and cost must be present
@@ -39,19 +42,20 @@ def get_recurring_costs() -> Dict[str, float]:
                     cost = float(row[1])
                     costs[item] = cost
                 except (ValueError, TypeError):
-                    print(f"Warning: Could not parse cost for {item}: {row[1]}")
+                    logger.warning(f"Could not parse cost for {item}: {row[1]}")
                     continue
-        
+
         workbook.close()
-        
+
         if not costs:
-            print("Warning: No recurring costs found in Excel file, using defaults")
+            logger.warning("No recurring costs found in Excel file, using defaults")
             return get_default_recurring_costs()
-        
+
+        logger.info(f"Loaded recurring costs: {len(costs)} items")
         return costs
-        
+
     except Exception as e:
-        print(f"Error loading recurring costs from Excel: {e}")
+        logger.error(f"Error loading recurring costs from Excel: {e}, using defaults")
         return get_default_recurring_costs()
 
 

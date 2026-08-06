@@ -1,7 +1,9 @@
 """OpenAI API integration for AI summary generation."""
+import logging
 from openai import AsyncOpenAI
 from backend.config import settings
 
+logger = logging.getLogger(__name__)
 
 # Initialize AsyncOpenAI client
 client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
@@ -38,6 +40,7 @@ async def generate_chat_completion(
         
         return response.choices[0].message.content
     except Exception as e:
+        logger.exception("OpenAI API call failed")
         raise Exception(f"OpenAI API error: {str(e)}")
 
 
@@ -55,5 +58,5 @@ async def test_connection() -> bool:
         )
         return True
     except Exception as e:
-        print(f"OpenAI connection test failed: {e}")
+        logger.error(f"OpenAI connection test failed: {e}")
         return False

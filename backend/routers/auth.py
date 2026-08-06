@@ -1,4 +1,5 @@
 """Authentication routes for user signup, login, logout, and profile."""
+import logging
 from fastapi import APIRouter, HTTPException, status, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from argon2 import PasswordHasher
@@ -14,6 +15,8 @@ from backend.models.user import (
 )
 from backend.database import get_database
 from backend.config import settings
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 security = HTTPBearer()
@@ -70,6 +73,7 @@ async def signup(user_data: UserCreate):
     # Check if email already exists
     existing_user = await db.users.find_one({"email": user_data.email})
     if existing_user:
+        logger.warning(f"Signup rejected, email already registered: {user_data.email}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Email already registered"
@@ -93,7 +97,9 @@ async def signup(user_data: UserCreate):
     
     # Generate JWT token
     token = create_jwt_token(user.id)
-    
+
+    logger.info(f"New user signed up: {user.email} (id={user.id})")
+
     # Return user and token
     return AuthResponse(
         user=UserResponse(
@@ -113,25 +119,29 @@ async def login(credentials: UserLogin):
     # Find user by email
     user_doc = await db.users.find_one({"email": credentials.email})
     if not user_doc:
+        logger.warning(f"Login failed, no account for email: {credentials.email}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password"
         )
-    
+
     user = User(**user_doc)
-    
+
     # Verify password
     try:
         ph.verify(user.password_hash, credentials.password)
     except VerifyMismatchError:
+        logger.warning(f"Login failed, bad password for email: {credentials.email}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password"
         )
-    
+
     # Generate JWT token
     token = create_jwt_token(user.id)
-    
+
+    logger.info(f"User logged in: {user.email} (id={user.id})")
+
     # Return user and token
     return AuthResponse(
         user=UserResponse(
@@ -146,6 +156,7 @@ async def login(credentials: UserLogin):
 @router.post("/logout")
 async def logout(current_user: User = Depends(get_current_user)):
     """Logout user (client-side token removal)."""
+    logger.info(f"User logged out: {current_user.email} (id={current_user.id})")
     return {"message": "Logged out successfully"}
 
 
@@ -169,6 +180,7 @@ async def forgot_password(request: PasswordResetRequest):
     
     # Always return success message to prevent email enumeration
     if not user_doc:
+        logger.info(f"Password reset requested for unknown email: {request.email}")
         return MessageResponse(
             message="If an account exists with this email, a password reset link will be sent."
         )
@@ -190,23 +202,20 @@ async def forgot_password(request: PasswordResetRequest):
     )
     
     # In a production app, you would send an email here with the reset link
-    # For development/testing, log the reset URL to console
+    # For development/testing, log the reset URL instead
     if settings.APP_ENV == "development":
         reset_url = f"http://localhost:5137/reset-password?token={reset_token}"
-        print(f"\n{'='*60}")
-        print(f"PASSWORD RESET REQUESTED")
-        print(f"Email: {request.email}")
-        print(f"Reset URL: {reset_url}")
-        print(f"{'='*60}\n")
-        
+        logger.info(f"Password reset requested for {request.email}, reset URL: {reset_url}")
+
         # In development mode, return the token in the response for seamless UX
         return MessageResponse(
             message="If an account exists with this email, a password reset link will be sent.",
             reset_token=reset_token
         )
-    
+
     # TODO: Implement email sending for production
-    
+    logger.info(f"Password reset requested for {request.email}")
+
     return MessageResponse(
         message="If an account exists with this email, a password reset link will be sent."
     )
@@ -224,6 +233,7 @@ async def reset_password(reset_data: PasswordReset):
     })
     
     if not user_doc:
+        logger.warning("Password reset attempted with invalid or expired token")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid or expired reset token"
@@ -247,4 +257,6 @@ async def reset_password(reset_data: PasswordReset):
         }
     )
     
+    logger.info(f"Password reset completed for user id={user_doc['_id']}")
+
     return MessageResponse(message="Password has been reset successfully")

@@ -1,4 +1,5 @@
 """Projection calculation routes."""
+import logging
 from fastapi import APIRouter, HTTPException, status, Depends
 from typing import Optional
 from pydantic import BaseModel
@@ -11,6 +12,8 @@ from backend.models.projection import Projection
 from backend.routers.auth import get_current_user
 from backend.database import get_database
 from backend.utils.projection_calculator import calculate_five_year_projection
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1/projections", tags=["projections"])
 
@@ -55,6 +58,7 @@ async def calculate_projection(
                 "user_id": ObjectId(current_user.id)
             })
         except Exception:
+            logger.warning(f"Projection requested with invalid profile_id: {request.profile_id}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Invalid profile ID"
@@ -62,8 +66,9 @@ async def calculate_projection(
     else:
         # Use user's current profile
         profile_doc = await db.profiles.find_one({"user_id": ObjectId(current_user.id)})
-    
+
     if not profile_doc:
+        logger.info(f"Projection requested but no profile found for user id={current_user.id}")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Profile not found"
@@ -84,6 +89,7 @@ async def calculate_projection(
         
         # Return cached if profile wasn't updated after projection was created
         if profile_updated_at and projection_created_at and profile_updated_at <= projection_created_at:
+            logger.info(f"Returning cached projection for user id={current_user.id}, profile_id={profile_id}")
             return cached_projection["projection_data"]
     
     # Convert profile document to FinancialProfile model
@@ -150,5 +156,7 @@ async def calculate_projection(
         # Create new projection
         projection_doc["created_at"] = now
         await db.projections.insert_one(projection_doc)
-    
+
+    logger.info(f"Calculated projection for user id={current_user.id}, profile_id={profile_id}")
+
     return projection_camel

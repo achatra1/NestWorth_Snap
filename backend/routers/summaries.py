@@ -1,4 +1,5 @@
 """API endpoints for AI summary generation."""
+import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 from datetime import datetime, timezone
@@ -7,6 +8,7 @@ from backend.routers.auth import get_current_user
 from backend.utils.summary_generator import generate_summary
 from backend.utils.assumptions_summarizer import generate_assumptions_summary
 
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1/summaries", tags=["summaries"])
 
@@ -66,15 +68,18 @@ async def generate_summary_endpoint(
         
         # Generate AI summary with optional custom instructions
         summary = await generate_summary(request.projection, request.custom_instructions)
-        
+
+        logger.info(f"Generated AI summary for user id={current_user.id}")
+
         return GenerateSummaryResponse(
             summary=summary,
             generatedAt=datetime.now(timezone.utc).isoformat()
         )
-    
+
     except HTTPException:
         raise
     except Exception as e:
+        logger.exception(f"Failed to generate summary for user id={current_user.id}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to generate summary: {str(e)}"
@@ -123,15 +128,18 @@ async def generate_assumptions_endpoint(
         
         # Generate AI summary
         summary = await generate_assumptions_summary(request.assumptions)
-        
+
+        logger.info(f"Generated AI assumptions summary for user id={current_user.id}")
+
         return GenerateAssumptionsResponse(
             summary=summary,
             generatedAt=datetime.now(timezone.utc).isoformat()
         )
-    
+
     except HTTPException:
         raise
     except Exception as e:
+        logger.exception(f"Failed to generate assumptions summary for user id={current_user.id}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to generate assumptions summary: {str(e)}"

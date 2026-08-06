@@ -3,11 +3,13 @@ Loader for childcare cost reference data from Excel file.
 Loads data from 'Ref Data Childcare cost byZip.xlsx' and provides lookup functions.
 """
 
+import logging
 import os
 from typing import Dict, List, Optional, Literal
 import pandas as pd
 from functools import lru_cache
 
+logger = logging.getLogger(__name__)
 
 # Path to the Excel file (relative to project root)
 EXCEL_FILE_PATH = os.path.join(
@@ -29,14 +31,12 @@ class ChildcareCostData:
             if os.path.exists(EXCEL_FILE_PATH):
                 # Read the Excel file
                 self._data = pd.read_excel(EXCEL_FILE_PATH)
-                print(f"✓ Loaded childcare cost data: {len(self._data)} ZIP codes")
+                logger.info(f"Loaded childcare cost data: {len(self._data)} ZIP codes")
             else:
-                print(f"⚠ Warning: Childcare cost file not found at {EXCEL_FILE_PATH}")
-                print("  Using fallback hardcoded data")
+                logger.warning(f"Childcare cost file not found at {EXCEL_FILE_PATH}, using fallback hardcoded data")
                 self._data = None
         except Exception as e:
-            print(f"⚠ Error loading childcare cost data: {e}")
-            print("  Using fallback hardcoded data")
+            logger.error(f"Error loading childcare cost data: {e}, using fallback hardcoded data")
             self._data = None
     
     def get_cost_by_zip(

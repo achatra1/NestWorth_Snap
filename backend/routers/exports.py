@@ -1,4 +1,5 @@
 """PDF export routes."""
+import logging
 from fastapi import APIRouter, HTTPException, status, Depends
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
@@ -9,6 +10,7 @@ from backend.models.user import User
 from backend.routers.auth import get_current_user
 from backend.utils.pdf_generator import generate_pdf
 
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1/exports", tags=["exports"])
 
@@ -68,7 +70,9 @@ async def export_pdf(
         
         # Generate filename with current date
         filename = f"nestworth-plan-{datetime.now().strftime('%Y-%m-%d')}.pdf"
-        
+
+        logger.info(f"Generated PDF export for user id={current_user.id}")
+
         # Return PDF as streaming response
         return StreamingResponse(
             pdf_buffer,
@@ -77,14 +81,11 @@ async def export_pdf(
                 "Content-Disposition": f"attachment; filename={filename}"
             }
         )
-    
+
     except HTTPException:
         raise
     except Exception as e:
-        import traceback
-        error_details = traceback.format_exc()
-        print(f"PDF Generation Error: {str(e)}")
-        print(f"Full traceback:\n{error_details}")
+        logger.exception(f"Failed to generate PDF for user id={current_user.id}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to generate PDF: {str(e)}"

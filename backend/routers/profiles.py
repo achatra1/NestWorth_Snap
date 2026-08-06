@@ -1,4 +1,5 @@
 """Financial profile routes for creating and retrieving user profiles."""
+import logging
 from fastapi import APIRouter, HTTPException, status, Depends
 from datetime import datetime, timezone, date
 from bson import ObjectId
@@ -12,6 +13,8 @@ from backend.models.profile import (
 from backend.models.user import User
 from backend.routers.auth import get_current_user
 from backend.database import get_database
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1/profiles", tags=["profiles"])
 
@@ -55,7 +58,9 @@ async def create_or_update_profile(
         result = await db.profiles.insert_one(profile_dict)
         profile_dict["_id"] = result.inserted_id
         profile = FinancialProfile(**profile_dict)
-    
+
+    logger.info(f"Profile {'updated' if existing_profile else 'created'} for user id={current_user.id}")
+
     # Return response with camelCase fields
     return FinancialProfileResponse(
         id=str(profile.id),
@@ -85,13 +90,14 @@ async def get_my_profile(current_user: User = Depends(get_current_user)):
     profile_doc = await db.profiles.find_one({"user_id": ObjectId(current_user.id)})
     
     if not profile_doc:
+        logger.info(f"Profile lookup miss for user id={current_user.id}")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Profile not found"
         )
-    
+
     profile = FinancialProfile(**profile_doc)
-    
+
     # Return response with camelCase fields
     return FinancialProfileResponse(
         id=str(profile.id),

@@ -459,7 +459,7 @@ Status: fully live as of 2026-08-03 (frontend on Vercel, backend on Railway conn
 - Required environment variables:
   - `MONGODB_URI`
   - `JWT_SECRET`
-  - `CORS_ORIGINS` (comma-separated; must include the live Vercel URL)
+  - `CORS_ORIGINS` (comma-separated; must include the live Vercel URL, exact match with scheme, no trailing slash — mismatches fail silently with no backend log line), e.g. `https://nestworth-liart.vercel.app`
   - `OPENAI_API_KEY` (required at boot — see `CLAUDE.md` Known Issues; an empty value crashes the app on import, not just AI-summary requests)
   - `APP_ENV=production`
   - `PORT` is injected automatically by Railway; `railway.json`'s start command reads it.
@@ -468,14 +468,14 @@ Status: fully live as of 2026-08-03 (frontend on Vercel, backend on Railway conn
 ### 3. Vercel frontend
 
 - Import `frontend/` as the **project root** (not the repo root).
-- Set `VITE_API_BASE_URL` to the Railway backend's public URL.
+- Set `VITE_API_BASE_URL` to the Railway backend's public URL, **including the `https://` scheme** (baked in at build time, so changing it requires a redeploy), e.g. `https://nestworthsnap-production.up.railway.app`.
 - `frontend/vercel.json` provides the SPA rewrite rule.
 
 ### 4. Wire them together
 
 1. Deploy backend first, note its public Railway URL.
 2. Set `VITE_API_BASE_URL` on Vercel to that URL, deploy frontend, note its public Vercel URL.
-3. Set `CORS_ORIGINS` on Railway to the Vercel URL, redeploy backend.
+3. Set `CORS_ORIGINS` on Railway to the exact Vercel URL (scheme included, no trailing slash), redeploy backend.
 4. Smoke-test end-to-end: signup, login, complete onboarding, view projection, generate AI summary, download PDF.
 
 ### Known deployment risks (unresolved)

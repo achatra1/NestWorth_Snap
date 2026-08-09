@@ -2,9 +2,9 @@
 
 Guidance for Claude Code (and future contributors) working in this repo.
 
-## Current priority (2026-08-05)
+## Current priority (2026-08-09)
 
-**Deployment and documentation cleanup both complete.** Backend is deployed on Railway (connected to Atlas, healthcheck passing) and the frontend is deployed on Vercel (`frontend/` as project root, `VITE_API_BASE_URL` pointed at the Railway backend). `CORS_ORIGINS` on Railway is set to the live Vercel URL. End-to-end smoke test (signup/login/projection/PDF export) against the deployed stack passed 2026-08-03. See Deployment plan below for full history; see `DEPLOYMENT.md` and `ARCHITECTURE.md` for the standalone write-ups. Documentation cleanup (stale docs removed, `frontend/README.md` corrected, root-level scripts relocated) completed 2026-08-05 — see Documentation & file inventory below.
+**Deployment and documentation cleanup both complete.** Backend is deployed on Railway (connected to Atlas, healthcheck passing) and the frontend is deployed on Vercel (`frontend/` as project root, `VITE_API_BASE_URL` pointed at the Railway backend). `CORS_ORIGINS` on Railway is set to the live Vercel URL. End-to-end smoke test (signup/login/projection/PDF export) against the deployed stack passed 2026-08-03. See Deployment plan below for full history. `DEPLOYMENT.md`, `ARCHITECTURE.md`, and `frontend/README.md` were merged into the root `README.md` on 2026-08-09 (see Documentation & file inventory below) — `README.md` is now the single doc covering setup, architecture, application internals, and deployment.
 
 ## TODO
 
@@ -67,9 +67,10 @@ Living audit of every doc/script/data file in the repo — not code. Goal: `CLAU
 | File | Purpose | Verdict |
 |---|---|---|
 | `CLAUDE.md` | Source of truth for repo status, known issues, deployment plan, this inventory. | **Keep** — authoritative. |
-| `ARCHITECTURE.md` | System architecture — topology, auth flow, projection/AI-summary/PDF request flow, `frontend/src/data/*.ts` provenance. | **Keep** — added 2026-08-05. |
-| `DEPLOYMENT.md` | Standalone deployment doc — Vercel + Railway + Atlas setup, expanded from the Deployment plan section below. | **Keep** — added 2026-08-05. |
-| `frontend/README.md` | Frontend setup/usage doc. | **Keep** — rewritten 2026-08-05 to reflect the real backend (was stale, see Documentation drift above). |
+| ~~`ARCHITECTURE.md`~~ | System architecture — topology, auth flow, projection/AI-summary/PDF request flow, `frontend/src/data/*.ts` provenance. | **REMOVED** 2026-08-09 — merged into root `README.md`'s Architecture section. |
+| ~~`DEPLOYMENT.md`~~ | Standalone deployment doc — Vercel + Railway + Atlas setup, expanded from the Deployment plan section below. | **REMOVED** 2026-08-09 — merged into root `README.md`'s Deployment section. |
+| ~~`frontend/README.md`~~ | Frontend setup/usage doc. | **REMOVED** 2026-08-09 — merged into root `README.md` (Usage and Application internals sections). |
+| `README.md` | Root project README — features, tech stack, local setup, architecture, application internals (reference data/calculation engine/data models), deployment. | **Keep** — merged 2026-08-09 from `README.md` + `ARCHITECTURE.md` + `DEPLOYMENT.md` + `frontend/README.md` into a single doc. |
 | ~~`Backend-dev-plan.md`~~ (723 lines) | Original pre-build plan for the FastAPI backend. Historical design rationale, written before the backend existed. | **REMOVED** 2026-08-05 — durable parts (stack, constraints) already covered by `CLAUDE.md`'s Stack section; rest superseded by the actual code. |
 | ~~`BROWSER_REFRESH_INSTRUCTIONS.md`~~ (24 lines) | One-off note: "the profile save fix has been applied, hard-refresh your browser." Describes a bug that's already fixed. | **REMOVED** 2026-08-05 — no ongoing value. |
 | ~~`PROFILE_PREPOPULATION_IMPLEMENTATION.md`~~ (115 lines) | Changelog-style writeup of one feature's implementation. | **REMOVED** 2026-08-05 — `git log`/`git blame` cover this. |

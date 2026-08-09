@@ -12,7 +12,7 @@ Nothing outstanding from the previous documentation pass. Open items are tracked
 
 ## Repo status
 
-This is an **unmaintained prototype repo** (last commit 2026-01-02, originally built fast via AI-assisted tooling — dyad, no longer in use; its scaffolding files were removed 2026-08-05, see Documentation & file inventory). It works, but has known rough edges below. Don't assume the READMEs are accurate — verify against actual code before relying on documented behavior.
+This is an **unmaintained prototype repo** (last commit 2026-01-02, originally built fast via AI-assisted tooling — dyad, no longer in use; its scaffolding files were removed 2026-08-05, see Documentation & file inventory). It works, but has known rough edges below. Don't assume `README.md` is fully accurate — verify against actual code before relying on documented behavior.
 
 ## Stack
 
@@ -86,6 +86,6 @@ Living audit of every doc/script/data file in the repo — not code. Goal: `CLAU
 | `backend/tests/manual/test_*.py` (16 files, moved from repo root 2026-08-05) | Manual integration scripts that `curl`/`urlopen` a live `localhost:8000` server (auth, profile, projections, password reset, onboarding flows). Not a pytest suite — no fixtures, no config, run ad hoc. | **Relocated, not yet converted** — moved out of repo root into `backend/tests/manual/` so they stop cluttering the root. Converting to real `pytest` tests (fixtures, config, CI integration) is still open — see TODO-equivalent note in Documentation drift above. |
 | ~~`test_browser_results.html`~~ | Generated output artifact from a test run, not source. | **REMOVED** 2026-08-05 — regenerable output shouldn't be committed; `.gitignore` now has a `test_*_results.html` pattern to prevent recurrence. |
 | `backend/scripts/delete_all_users.py` (moved from repo root 2026-08-05) | Destructive admin script. | **Moved + guarded** — relocated to `backend/scripts/`; now requires an explicit `--yes` flag or it exits without doing anything. |
-| `data/Example.xlsx`, `data/One Time costs.xlsx`, `data/Recurring costs.xlsx`, `data/Ref Data Childcare cost byZip.xlsx` (moved from repo root 2026-08-05) | Source spreadsheets for the reference cost data compiled into `frontend/src/data/*.ts` (see `ARCHITECTURE.md`). `backend/data/childcare_loader.py` and `backend/data/recurring_loader.py` load `Ref Data Childcare cost byZip.xlsx` and `Recurring costs.xlsx` at runtime — both updated to point at the new `data/` path. | **Keep** — legitimate data provenance, now organized under `data/`. |
+| `data/Example.xlsx`, `data/One Time costs.xlsx`, `data/Recurring costs.xlsx`, `data/Ref Data Childcare cost byZip.xlsx` (moved from repo root 2026-08-05) | Source spreadsheets for the reference cost data compiled into `frontend/src/data/*.ts` (see `README.md`'s Architecture section). `backend/data/childcare_loader.py` and `backend/data/recurring_loader.py` load `Ref Data Childcare cost byZip.xlsx` and `Recurring costs.xlsx` at runtime — both updated to point at the new `data/` path. | **Keep** — legitimate data provenance, now organized under `data/`. |
 
 Remaining open item: converting `backend/tests/manual/` into a real pytest suite (fixtures, config, CI). Say the word and I'll execute it.

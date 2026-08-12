@@ -15,6 +15,7 @@ from backend.models.user import (
 )
 from backend.database import get_database
 from backend.config import settings
+from backend.integrations.email_client import send_password_reset_email
 
 logger = logging.getLogger(__name__)
 
@@ -188,7 +189,7 @@ async def forgot_password(request: PasswordResetRequest):
     # Generate secure reset token
     reset_token = secrets.token_urlsafe(32)
     reset_token_expires = datetime.now(timezone.utc) + timedelta(hours=1)
-    
+
     # Update user with reset token
     await db.users.update_one(
         {"_id": user_doc["_id"]},
@@ -200,22 +201,32 @@ async def forgot_password(request: PasswordResetRequest):
             }
         }
     )
-    
-    # In a production app, you would send an email here with the reset link
-    # For development/testing, log the reset URL instead
-    if settings.APP_ENV == "development":
-        reset_url = f"http://localhost:5137/reset-password?token={reset_token}"
-        logger.info(f"Password reset requested for {request.email}, reset URL: {reset_url}")
 
-        # In development mode, return the token in the response for seamless UX
+    reset_url = f"{settings.FRONTEND_URL}/reset-password?token={reset_token}"
+
+    if settings.RESEND_API_KEY:
+        try:
+            await send_password_reset_email(request.email, reset_url)
+            logger.info(f"Password reset email sent to {request.email}")
+        except Exception:
+            logger.exception(f"Failed to send password reset email to {request.email}")
+
+        return MessageResponse(
+            message="If an account exists with this email, a password reset link will be sent."
+        )
+
+    # No email provider configured: fall back to logging the link.
+    # Only return the token directly in development, so a misconfigured
+    # production deployment doesn't leak reset tokens over the API.
+    logger.info(f"Password reset requested for {request.email}, reset URL: {reset_url}")
+
+    if settings.APP_ENV == "development":
         return MessageResponse(
             message="If an account exists with this email, a password reset link will be sent.",
             reset_token=reset_token
         )
 
-    # TODO: Implement email sending for production
-    logger.info(f"Password reset requested for {request.email}")
-
+    logger.warning("RESEND_API_KEY is not configured; password reset email was not sent")
     return MessageResponse(
         message="If an account exists with this email, a password reset link will be sent."
     )

@@ -8,7 +8,8 @@ Guidance for Claude Code (and future contributors) working in this repo.
 
 ## TODO
 
-Nothing outstanding from the previous documentation pass. Open items are tracked inline in Known issues below (security hardening, `OPENAI_API_KEY` boot requirement, CI/Dockerfile, converting `backend/tests/manual/` to real pytest).
+Forgot-password now sends real email via Resend (2026-08-11, see Known issues below) — still need to: set `RESEND_API_KEY` and `FRONTEND_URL` on Railway and redeploy, then smoke-test a real reset email end-to-end against the deployed stack. Other open items are tracked inline in Known issues below (security hardening, `OPENAI_API_KEY` boot requirement, CI/Dockerfile, converting `backend/tests/manual/` to real pytest).
+In Readme, add contributing section. Add diagram how forget password flow (via resend, reset password flow).
 
 ## Repo status
 
@@ -24,7 +25,7 @@ This is an **unmaintained prototype repo** (last commit 2026-01-02, originally b
 
 ### Security — fix before exposing beyond localhost
 - ~~`POST /api/v1/auth/reset-password-direct`~~ — **FIXED**. This endpoint reset any user's password given only their email (no token/verification) and was actually wired up as the app's primary reset flow (`Login.tsx` linked straight to `/reset-password` with no token, and `ResetPassword.tsx` ignored any token and called `-direct`). Removed the endpoint and model (`backend/routers/auth.py`, `backend/models/user.py`), and rewired the frontend to the proper token-based flow: `Login.tsx` → `/forgot-password` (request email) → backend issues a token → `/reset-password?token=...` → `ResetPassword.tsx` reads the token from the URL and calls the token-based `POST /api/v1/auth/reset-password`. If no token is present, the page now shows an error and a link back to `/forgot-password` instead of silently falling back to an insecure path.
-- `forgot_password` (`auth.py`) returns the raw reset token in the API response when `APP_ENV=development`. Fine for local dev; make sure `APP_ENV` is never `development` outside your machine.
+- ~~`forgot_password` (`auth.py`) returns the raw reset token in the API response when `APP_ENV=development`~~ — **FIXED 2026-08-11**. Added Resend (`backend/integrations/email_client.py`) so `forgot-password` sends a real reset-link email when `RESEND_API_KEY` is set, instead of returning the token in the API response. The token-in-response fallback now only fires when `RESEND_API_KEY` is unset *and* `APP_ENV=development` — decoupled from `APP_ENV` alone, so a production deploy that forgets to set `RESEND_API_KEY` logs a warning and withholds the token rather than leaking it. `reset_url` is now built from `FRONTEND_URL` (new setting, defaults to `http://localhost:5137`) instead of a hardcoded `localhost:5137`, so the emailed link is correct in production too. Set `RESEND_API_KEY`, `EMAIL_FROM`, and `FRONTEND_URL` (to the live Vercel URL) on Railway and redeploy for this to take effect in production — not yet done, see TODO above.
 - No rate limiting on login/signup/reset endpoints.
 
 ### Config / deployment drift

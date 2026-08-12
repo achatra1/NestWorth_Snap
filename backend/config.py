@@ -27,7 +27,14 @@ class Settings(BaseSettings):
     
     # OpenAI
     OPENAI_API_KEY: str = ""
-    
+
+    # Resend (transactional email)
+    RESEND_API_KEY: str = ""
+    EMAIL_FROM: str = "NestWorth <onboarding@resend.dev>"
+
+    # Frontend base URL (used to build links embedded in emails, e.g. password reset)
+    FRONTEND_URL: str = "http://localhost:5137"
+
     @property
     def cors_origins_list(self) -> List[str]:
         """Convert CORS_ORIGINS string to list."""
